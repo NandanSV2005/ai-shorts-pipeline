@@ -114,9 +114,27 @@ def send_notification(date_str: str, status: str, error_msg: str | None = None) 
         print(msg_content)
         print("----------------------------------------------------------------------")
 
-def execute_pipeline(date_str: str, force: bool = False, topic: str | None = None) -> None:
+def execute_pipeline(date_str: str, force: bool = False, topic: str | None = None, series: str | None = None, episode: int | None = None) -> None:
     print(f"Starting YouTube Automation Pipeline Run for: {date_str}")
-    update_run_status(date_str, "Running Pipeline", "pending")
+    
+    # Pre-initialize metadata with series & episode info so subsequent steps can load them
+    output_dir = get_output_dir(date_str)
+    metadata_file = output_dir / "metadata.json"
+    metadata_dict = {}
+    if metadata_file.exists():
+        try:
+            with open(metadata_file, "r", encoding="utf-8") as f:
+                metadata_dict = json.load(f)
+        except Exception:
+            pass
+            
+    metadata_dict["series"] = series if series else None
+    metadata_dict["episode"] = episode if episode is not None else None
+    
+    with open(metadata_file, "w", encoding="utf-8") as f:
+        json.dump(metadata_dict, f, indent=2, ensure_ascii=False)
+        
+    update_run_status(date_str, "Running Pipeline", "pending", metadata_dict)
     
     steps = [
         "01_topic_generator.py",
@@ -139,15 +157,12 @@ def execute_pipeline(date_str: str, force: bool = False, topic: str | None = Non
             run_step(step, date_str, force, topic)
             
         # Get final topic title from topic.json
-        output_dir = get_output_dir(date_str)
         topic_file = output_dir / "topic.json"
         if topic_file.exists():
             with open(topic_file, "r", encoding="utf-8") as f:
                 topic_title = json.load(f).get("title", "Unknown")
         
         # Load final metadata
-        metadata_file = output_dir / "metadata.json"
-        metadata_dict = {}
         if metadata_file.exists():
             with open(metadata_file, "r", encoding="utf-8") as f:
                 metadata_dict = json.load(f)
@@ -161,7 +176,19 @@ def execute_pipeline(date_str: str, force: bool = False, topic: str | None = Non
         
     except Exception as e:
         print(f"\n[ERROR] Pipeline run failed: {e}", file=sys.stderr)
-        update_run_status(date_str, topic_title, "failed", {"error": str(e)})
+        
+        # Try merging failure state into existing metadata.json (preserves series/episode)
+        failed_metadata = {"error": str(e)}
+        if metadata_file.exists():
+            try:
+                with open(metadata_file, "r", encoding="utf-8") as f:
+                    existing_meta = json.load(f)
+                    existing_meta.update(failed_metadata)
+                    failed_metadata = existing_meta
+            except Exception:
+                pass
+                
+        update_run_status(date_str, topic_title, "failed", failed_metadata)
         send_notification(date_str, "failed", str(e))
         sys.exit(1)
 
@@ -184,6 +211,18 @@ if __name__ == "__main__":
         default=None,
         help="Manual topic override to skip auto-generation.",
     )
+    parser.add_argument(
+        "--series",
+        type=str,
+        default=None,
+        help="Optional series name for batch production.",
+    )
+    parser.add_argument(
+        "--episode",
+        type=int,
+        default=None,
+        help="Optional episode number within the series.",
+    )
     args = parser.parse_args()
 
-    execute_pipeline(args.date, args.force, args.topic)
+    execute_pipeline(args.date, args.force, args.topic, args.series, args.episode)

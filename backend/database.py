@@ -1,6 +1,6 @@
 import sqlite3
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from backend.config import DB_PATH
 
 def get_db_connection():
@@ -33,10 +33,26 @@ def init_db():
             topic_title TEXT,
             status TEXT,
             metadata_json TEXT,
-            created_at TEXT
+            created_at TEXT,
+            series TEXT,
+            episode INTEGER
         )
     """)
     
+    # Check if the series and episode columns exist, and add them if not (for existing databases)
+    cursor.execute("PRAGMA table_info(runs)")
+    columns = [row[1] for row in cursor.fetchall()]
+    if "series" not in columns:
+        try:
+            cursor.execute("ALTER TABLE runs ADD COLUMN series TEXT")
+        except sqlite3.OperationalError as e:
+            print(f"[DB init] Note: {e}")
+    if "episode" not in columns:
+        try:
+            cursor.execute("ALTER TABLE runs ADD COLUMN episode INTEGER")
+        except sqlite3.OperationalError as e:
+            print(f"[DB init] Note: {e}")
+            
     conn.commit()
     conn.close()
 
@@ -53,7 +69,7 @@ def add_topic(date_str: str, niche: str, title: str, concept: str, keywords: lis
                 title,
                 concept,
                 json.dumps(keywords),
-                datetime.utcnow().isoformat()
+                datetime.now(timezone.utc).isoformat()
             )
         )
         conn.commit()
@@ -77,17 +93,22 @@ def update_run_status(date_str: str, topic_title: str, status: str, metadata: di
     conn = get_db_connection()
     cursor = conn.cursor()
     metadata_json = json.dumps(metadata) if metadata else "{}"
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
+    
+    series = metadata.get("series") if metadata else None
+    episode = metadata.get("episode") if metadata else None
     
     cursor.execute("""
-        INSERT INTO runs (date_str, topic_title, status, metadata_json, created_at)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO runs (date_str, topic_title, status, metadata_json, created_at, series, episode)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(date_str) DO UPDATE SET
             topic_title=excluded.topic_title,
             status=excluded.status,
             metadata_json=excluded.metadata_json,
-            created_at=excluded.created_at
-    """, (date_str, topic_title, status, metadata_json, now))
+            created_at=excluded.created_at,
+            series=excluded.series,
+            episode=excluded.episode
+    """, (date_str, topic_title, status, metadata_json, now, series, episode))
     
     conn.commit()
     conn.close()

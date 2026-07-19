@@ -108,6 +108,61 @@ def generate_thumbnail(date_str: str, force: bool = False) -> None:
     # Draw subtitle/hook centered
     draw.text((width // 2, int(height * 0.58)), "WHY IT FAILED!", fill=(255, 215, 0), font=font_sub, stroke_width=1, stroke_fill=(0, 0, 0), anchor="mm")
 
+    # Load series/episode from metadata if available
+    metadata_file = output_dir / "metadata.json"
+    series = None
+    episode = None
+    if metadata_file.exists():
+        try:
+            with open(metadata_file, "r", encoding="utf-8") as f:
+                meta = json.load(f)
+                series = meta.get("series")
+                episode = meta.get("episode")
+        except Exception:
+            pass
+
+    # Draw series/episode badge if series is provided
+    if series:
+        badge_text = f"{series} Ep. {episode}" if episode is not None else series
+        badge_text = badge_text.upper()
+        
+        try:
+            font_badge = ImageFont.load_default(size=24)
+        except TypeError:
+            font_badge = ImageFont.load_default()
+            
+        # Get text dimensions compatibly
+        if hasattr(draw, "textbbox"):
+            l, t, r, b = draw.textbbox((0, 0), badge_text, font=font_badge)
+            text_w, text_h = r - l, b - t
+        else:
+            text_w, text_h = draw.textsize(badge_text, font=font_badge) if hasattr(draw, "textsize") else (len(badge_text) * 12, 24)
+            
+        badge_padding_x = 16
+        badge_padding_y = 10
+        badge_x = 50
+        badge_y = 50
+        
+        box_x1 = badge_x
+        box_y1 = badge_y
+        box_x2 = badge_x + text_w + (badge_padding_x * 2)
+        box_y2 = badge_y + text_h + (badge_padding_y * 2)
+        
+        # Draw transparent background box for badge on final_image (which is RGBA)
+        overlay_badge = Image.new("RGBA", final_image.size, (0, 0, 0, 0))
+        badge_draw = ImageDraw.Draw(overlay_badge)
+        
+        if hasattr(badge_draw, "rounded_rectangle"):
+            badge_draw.rounded_rectangle([box_x1, box_y1, box_x2, box_y2], radius=8, fill=(30, 30, 30, 220), outline=(255, 70, 70, 255), width=2)
+        else:
+            badge_draw.rectangle([box_x1, box_y1, box_x2, box_y2], fill=(30, 30, 30, 220), outline=(255, 70, 70, 255), width=2)
+            
+        final_image = Image.alpha_composite(final_image, overlay_badge)
+        draw = ImageDraw.Draw(final_image)
+        
+        # Draw badge text
+        draw.text((badge_x + badge_padding_x, badge_y + badge_padding_y), badge_text, fill=(255, 255, 255), font=font_badge)
+
     # Save to dated output folder
     final_image.convert("RGB").save(thumbnail_file, "PNG")
     print(f"[09 Thumbnail] Successfully generated and saved thumbnail to: {thumbnail_file}")

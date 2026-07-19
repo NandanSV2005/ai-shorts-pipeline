@@ -37,6 +37,17 @@ def generate_seo_metadata(date_str: str, force: bool = False) -> dict:
     title_concept = topic_data.get("title", "")
     concept = topic_data.get("concept", "")
 
+    series = metadata.get("series")
+    episode = metadata.get("episode")
+    
+    series_info = ""
+    if series:
+        ep_info = f" Episode {episode}" if episode is not None else ""
+        series_info = (
+            f"Note: This video is part of a series named '{series}'{ep_info}.\n"
+            f"Ensure descriptions reference that it is part of the '{series}' series.\n"
+        )
+
     system_instruction = (
         "You are an expert YouTube SEO Optimization specialist. Your goal is to maximize click-through rate (CTR) "
         "and search rankings for historical documentary videos. You write compelling, click-worthy titles "
@@ -46,6 +57,7 @@ def generate_seo_metadata(date_str: str, force: bool = False) -> dict:
     prompt = (
         f"Original Topic Title: {title_concept}\n"
         f"Concept: {concept}\n"
+        f"{series_info}"
         f"Script Text:\n{script_content}\n\n"
         "Generate high-performing YouTube Shorts SEO metadata for both Part 1 and Part 2 of this split video.\n"
         "Provide your response as a raw JSON object with exactly the following keys (do not include any markdown fences or conversational text outside the JSON):\n"
@@ -89,6 +101,48 @@ def generate_seo_metadata(date_str: str, force: bool = False) -> dict:
         except json.JSONDecodeError as e:
             print(f"[ERROR] Failed to parse SEO JSON response. Raw output was:\n{raw_response}")
             raise e
+
+    # Programmatic post-processing for series/episode data
+    if series and isinstance(seo_data, dict):
+        title_suffix = f" | {series} Ep. {episode}" if episode is not None else f" | {series}"
+        
+        # 1. Update overall title
+        if "title" in seo_data and isinstance(seo_data["title"], str) and title_suffix not in seo_data["title"]:
+            seo_data["title"] = f"{seo_data['title']}{title_suffix}"
+            
+        # 2. Update part titles, descriptions, and tags
+        for part in ["part1", "part2"]:
+            if part in seo_data:
+                part_data = seo_data[part]
+                if isinstance(part_data, dict):
+                    # Update part title
+                    p_title = part_data.get("title", "")
+                    if isinstance(p_title, str) and title_suffix not in p_title:
+                        part_data["title"] = f"{p_title}{title_suffix}"
+                    
+                    # Update description
+                    p_desc = part_data.get("description", "")
+                    if isinstance(p_desc, str):
+                        desc_line = f"This video is part of the '{series}' series."
+                        if desc_line.lower() not in p_desc.lower():
+                            if "#" in p_desc:
+                                parts = p_desc.split("#", 1)
+                                p_desc = f"{parts[0].rstrip()}\n\n{desc_line}\n\n#{parts[1]}"
+                            else:
+                                p_desc = f"{p_desc}\n\n{desc_line}"
+                            part_data["description"] = p_desc
+                    
+                    # Update tags
+                    p_tags = part_data.get("tags", [])
+                    if isinstance(p_tags, list):
+                        series_tag = series.lower()
+                        if series_tag not in [str(t).lower() for t in p_tags]:
+                            p_tags.append(series_tag)
+                        if episode is not None:
+                            ep_tag = f"{series_tag} ep {episode}"
+                            if ep_tag not in [str(t).lower() for t in p_tags]:
+                                p_tags.append(ep_tag)
+                        part_data["tags"] = p_tags
 
     # Update metadata
     metadata["seo"] = seo_data

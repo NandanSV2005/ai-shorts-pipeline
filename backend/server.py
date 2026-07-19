@@ -88,7 +88,9 @@ def list_runs():
                     "has_video": has_video,
                     "has_thumbnail": has_thumbnail,
                     "has_script": has_script,
-                    "warnings_count": warnings_count
+                    "warnings_count": warnings_count,
+                    "series": metadata.get("series"),
+                    "episode": metadata.get("episode")
                 }
                 
     # 2. Check DB runs table
@@ -96,9 +98,14 @@ def list_runs():
         try:
             conn = sqlite3.connect(str(DB_PATH))
             cursor = conn.cursor()
-            cursor.execute("SELECT date_str, topic_title, metadata_json FROM runs")
+            cursor.execute("SELECT date_str, topic_title, metadata_json, series, episode FROM runs")
             for row in cursor.fetchall():
-                date_str, topic_title, metadata_json = row
+                date_str = row[0]
+                topic_title = row[1]
+                metadata_json = row[2]
+                series_col = row[3]
+                episode_col = row[4]
+                
                 if not re.match(r"^\d{4}-\d{2}-\d{2}$", date_str):
                     continue
                 try:
@@ -107,6 +114,9 @@ def list_runs():
                     db_meta = {}
                 
                 approval_status = db_meta.get("approval_status", "unreviewed")
+                
+                series_val = series_col if series_col is not None else db_meta.get("series")
+                episode_val = episode_col if episode_col is not None else db_meta.get("episode")
                 
                 warnings_count = 0
                 for check in db_meta.get("fact_check", []):
@@ -121,12 +131,18 @@ def list_runs():
                         "has_video": False,
                         "has_thumbnail": False,
                         "has_script": False,
-                        "warnings_count": warnings_count
+                        "warnings_count": warnings_count,
+                        "series": series_val,
+                        "episode": episode_val
                     }
                 else:
                     if "approval_status" not in runs_map[date_str] or runs_map[date_str]["approval_status"] == "unreviewed":
                         if approval_status != "unreviewed":
                             runs_map[date_str]["approval_status"] = approval_status
+                    if not runs_map[date_str].get("series"):
+                        runs_map[date_str]["series"] = series_val
+                    if runs_map[date_str].get("episode") is None:
+                        runs_map[date_str]["episode"] = episode_val
             conn.close()
         except Exception as e:
             print(f"Error querying DB: {e}")
@@ -211,7 +227,9 @@ def get_run_detail(date_str: str):
         "thumbnail_url": f"/outputs/{date_str}/thumbnail.png" if has_thumbnail else None,
         "script": script_content,
         "seo": metadata.get("seo", {}),
-        "fact_check": metadata.get("fact_check", [])
+        "fact_check": metadata.get("fact_check", []),
+        "series": metadata.get("series"),
+        "episode": metadata.get("episode")
     }
 
 @app.post("/api/runs/{date_str}/status")
