@@ -836,7 +836,9 @@ body::-webkit-scrollbar-thumb:hover {
     letter-spacing: 0.5px;
 }
 
-.form-row input[type="date"] {
+.form-row input[type="date"],
+.form-row input[type="text"],
+.form-row input[type="number"] {
     background-color: #0b0c12;
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -848,8 +850,11 @@ body::-webkit-scrollbar-thumb:hover {
     transition: var(--transition);
 }
 
-.form-row input[type="date"]:focus {
+.form-row input[type="date"]:focus,
+.form-row input[type="text"]:focus,
+.form-row input[type="number"]:focus {
     border-color: var(--accent-blue);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
 }
 
 .checkbox-row {
@@ -1065,6 +1070,12 @@ body::-webkit-scrollbar-thumb:hover {
     outline: none;
     cursor: pointer;
     transition: var(--transition);
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2724%27%20height%3D%2724%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27%239ca3af%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpolyline%20points%3D%276%209%2012%2015%2018%209%27%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
 }
 
 .series-select:focus {
