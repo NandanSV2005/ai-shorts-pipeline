@@ -1,16 +1,20 @@
 import os
+import sys
 import re
 import json
 import sqlite3
 from datetime import datetime
 from pathlib import Path
+
+# Add project root directory to Python path to allow running backend directly as a script
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-import sys
 import subprocess
 from backend.config import (
     BASE_DIR,
@@ -386,3 +390,9 @@ if OUTPUTS_DIR.exists():
 static_dir = Path("backend/static")
 static_dir.mkdir(parents=True, exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+if __name__ == "__main__":
+    import uvicorn
+    print("Starting Web Dashboard on http://localhost:8000 ...")
+    uvicorn.run("backend.server:app", host="127.0.0.1", port=8000, reload=True)
+
