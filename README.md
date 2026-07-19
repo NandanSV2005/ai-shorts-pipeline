@@ -81,25 +81,75 @@ These files are **not included** in this repository due to their large size and 
 
 ## How to Run
 
-### Run the Pipeline Manually
-You can run the entire sequential pipeline end-to-end from the command line:
+To run the pipeline or start the web dashboard, you must run the commands from the project root directory (`Video_generator`). 
 
-```bash
-python run_pipeline.py
+If you are using a virtual environment (`.venv`), you must either activate it first or use the direct path to the Python executable within the virtual environment.
+
+### Option 1: Activating the Virtual Environment (Recommended)
+
+Open your terminal in the project root directory and run:
+
+**On Windows (PowerShell):**
+```powershell
+.venv\Scripts\Activate.ps1
+```
+*Note: If you get a script execution policy error, you can bypass it for the current terminal session by running:*
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+.venv\Scripts\Activate.ps1
 ```
 
-#### Override Niche or Custom Topic
-To force the pipeline to generate a video on a specific topic instead of choosing one automatically:
-```bash
-python run_pipeline.py --topic "The Flying Platform Hoverboard"
+**On Windows (Command Prompt):**
+```cmd
+.venv\Scripts\activate.bat
 ```
 
-### Run the Web Dashboard
-You can also launch the FastAPI web server to run the pipeline, monitor status, and preview output videos:
+**On macOS/Linux:**
 ```bash
-python backend/server.py
+source .venv/bin/activate
 ```
-Then navigate to `http://localhost:8000` in your web browser.
+
+Once the virtual environment is activated, your terminal prompt will show `(.venv)`. You can now run:
+- **Run the Web Dashboard**:
+  ```bash
+  python backend/server.py
+  ```
+- **Run the Pipeline Manually**:
+  ```bash
+  python run_pipeline.py
+  ```
+- **Override Niche or Custom Topic**:
+  ```bash
+  python run_pipeline.py --topic "The Flying Platform Hoverboard"
+  ```
+
+---
+
+### Option 2: Direct Execution (Alternative - No Activation Required)
+
+If you do not want to activate the virtual environment, you can invoke the Python executable directly from the `.venv` folder from the project root directory:
+
+- **Run the Web Dashboard**:
+  ```powershell
+  .\.venv\Scripts\python.exe backend/server.py
+  ```
+- **Run the Pipeline Manually**:
+  ```powershell
+  .\.venv\Scripts\python.exe run_pipeline.py
+  ```
+- **Override Niche or Custom Topic**:
+  ```powershell
+  .\.venv\Scripts\python.exe run_pipeline.py --topic "The Flying Platform Hoverboard"
+  ```
+
+---
+
+### Accessing the Web Dashboard
+
+Once the web server starts successfully and shows `Uvicorn running on http://127.0.0.1:8000`, open your web browser and navigate to:
+```
+http://localhost:8000
+```
 
 ---
 
