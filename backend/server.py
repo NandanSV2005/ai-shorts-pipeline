@@ -287,6 +287,43 @@ def update_run_status_endpoint(date_str: str, data: StatusUpdate):
             
     return {"success": True, "status": status}
 
+@app.delete("/api/runs/{date_str}")
+def delete_run_endpoint(date_str: str):
+    if not re.match(r"^\d{4}-\d{2}-\d{2}$", date_str):
+        raise HTTPException(status_code=400, detail="Invalid date format YYYY-MM-DD")
+        
+    # 1. Delete outputs folder outputs/date_str
+    output_dir = OUTPUTS_DIR / date_str
+    if output_dir.exists():
+        import shutil
+        try:
+            shutil.rmtree(output_dir)
+        except Exception as e:
+            print(f"Error deleting outputs directory: {e}")
+            
+    # 2. Delete logs logs/generation_date_str.log
+    log_file_path = LOGS_DIR / f"generation_{date_str}.log"
+    if log_file_path.exists():
+        try:
+            log_file_path.unlink()
+        except Exception as e:
+            print(f"Error deleting log file: {e}")
+            
+    # 3. Delete from SQLite DB
+    if DB_PATH.exists():
+        try:
+            conn = sqlite3.connect(str(DB_PATH))
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM runs WHERE date_str = ?", (date_str,))
+            cursor.execute("DELETE FROM topics WHERE date_str = ?", (date_str,))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"Error deleting database records: {e}")
+            raise HTTPException(status_code=500, detail=f"Database deletion failed: {e}")
+            
+    return {"success": True}
+
 class GenerateRequest(BaseModel):
     date_str: str | None = None
     force: bool = False

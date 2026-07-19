@@ -61,6 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Action buttons
     const btnApprove = document.getElementById("btn-approve");
     const btnReject = document.getElementById("btn-reject");
+    const btnDelete = document.getElementById("btn-delete");
     
     // Toggle filter buttons
     const btnFilterUnreviewed = document.getElementById("btn-unreviewed");
@@ -607,6 +608,47 @@ document.addEventListener("DOMContentLoaded", () => {
             updateRunStatus(currentSelectedRunDate, "rejected");
         }
     });
+
+    if (btnDelete) {
+        btnDelete.addEventListener("click", async () => {
+            if (!currentSelectedRunDate) return;
+            
+            const confirmed = confirm(`Are you sure you want to delete all files and database records for the run: ${currentSelectedRunDate}? This action cannot be undone.`);
+            if (!confirmed) return;
+            
+            try {
+                btnDelete.disabled = true;
+                btnDelete.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Deleting...`;
+                
+                const response = await fetch(`/api/runs/${currentSelectedRunDate}`, {
+                    method: "DELETE"
+                });
+                
+                if (!response.ok) {
+                    throw new Error("Failed to delete the run.");
+                }
+                
+                // Remove from local runs state
+                runs = runs.filter(r => r.date !== currentSelectedRunDate);
+                currentSelectedRunDate = null;
+                
+                // Reset detail view and reveal empty state
+                detailPane.classList.add("hidden");
+                emptyState.classList.remove("hidden");
+                
+                // Refresh filters and sidebar
+                populateSeriesFilter();
+                renderRunsList();
+                
+            } catch (error) {
+                console.error("Error deleting run:", error);
+                alert(`Failed to delete run: ${error.message}`);
+            } finally {
+                btnDelete.disabled = false;
+                btnDelete.innerHTML = `<i class="fa-solid fa-trash-can"></i> Delete Run`;
+            }
+        });
+    }
 
     // Set default date input value to today
     const today = new Date().toISOString().split("T")[0];

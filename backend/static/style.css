@@ -1071,3 +1071,17 @@ body::-webkit-scrollbar-thumb:hover {
     border-color: var(--accent-blue);
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
+
+.delete-btn {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    margin-right: auto; /* push it to the left side of the actions bar! */
+}
+
+.delete-btn:hover {
+    background-color: var(--color-flagged-bg);
+    color: var(--color-flagged);
+    border-color: rgba(239, 68, 68, 0.4);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+}
