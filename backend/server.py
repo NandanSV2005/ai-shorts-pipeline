@@ -3,7 +3,7 @@ import sys
 import re
 import json
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 # Add project root directory to Python path to allow running backend directly as a script
@@ -260,7 +260,7 @@ def update_run_status_endpoint(date_str: str, data: StatusUpdate):
                 db_meta = {"approval_status": status}
                 cursor.execute(
                     "INSERT INTO runs (date_str, topic_title, status, metadata_json, created_at) VALUES (?, ?, ?, ?, ?)",
-                    (date_str, "Unknown", "completed", json.dumps(db_meta), datetime.utcnow().isoformat())
+                    (date_str, "Unknown", "completed", json.dumps(db_meta), datetime.now(timezone.utc).isoformat())
                 )
             conn.commit()
             conn.close()
