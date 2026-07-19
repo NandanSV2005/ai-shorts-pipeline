@@ -291,6 +291,8 @@ class GenerateRequest(BaseModel):
     date_str: str | None = None
     force: bool = False
     topic: str | None = None
+    series: str | None = None
+    episode: int | None = None
 
 @app.post("/api/generate")
 def start_generation(req: GenerateRequest):
@@ -323,6 +325,10 @@ def start_generation(req: GenerateRequest):
         cmd.append("--force")
     if req.topic:
         cmd.extend(["--topic", req.topic])
+    if req.series:
+        cmd.extend(["--series", req.series])
+    if req.episode is not None:
+        cmd.extend(["--episode", str(req.episode)])
 
     # Open log file
     LOGS_DIR.mkdir(parents=True, exist_ok=True)

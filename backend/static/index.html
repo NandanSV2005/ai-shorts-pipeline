@@ -40,6 +40,14 @@
                         <label for="generate-topic">Manual Topic (Optional)</label>
                         <input type="text" id="generate-topic" placeholder="e.g. History of the Dynasphere">
                     </div>
+                    <div class="form-row">
+                        <label for="generate-series">Series (Optional)</label>
+                        <input type="text" id="generate-series" placeholder="e.g. Flying Failures">
+                    </div>
+                    <div class="form-row">
+                        <label for="generate-episode">Episode (Optional)</label>
+                        <input type="number" id="generate-episode" placeholder="e.g. 1" min="1">
+                    </div>
                     <div class="form-row checkbox-row">
                         <input type="checkbox" id="generate-force">
                         <label for="generate-force">Force overwrite cache</label>
@@ -63,6 +71,11 @@
                 <div class="search-box">
                     <i class="fa-solid fa-magnifying-glass search-icon"></i>
                     <input type="text" id="search-input" placeholder="Search by title or date...">
+                </div>
+                <div class="series-filter-box">
+                    <select id="series-filter" class="series-select">
+                        <option value="">All Series</option>
+                    </select>
                 </div>
                 <div class="toggle-group">
                     <button id="btn-unreviewed" class="toggle-btn active">Unreviewed</button>
@@ -92,7 +105,10 @@
                 <!-- Top Details Header -->
                 <header class="detail-header">
                     <div class="title-meta">
-                        <span id="detail-date" class="date-badge">YYYY-MM-DD</span>
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                            <span id="detail-date" class="date-badge">YYYY-MM-DD</span>
+                            <span id="detail-series-badge" class="series-badge hidden"></span>
+                        </div>
                         <h1 id="detail-title">Video Title Placeholder</h1>
                     </div>
                     <div class="status-badge-container">

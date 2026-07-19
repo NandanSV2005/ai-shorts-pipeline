@@ -1017,3 +1017,57 @@ body::-webkit-scrollbar-thumb:hover {
     align-items: center;
     gap: 6px;
 }
+
+/* ==============================================================================
+   SERIES & EPISODE STYLING ADDITIONS
+   ============================================================================== */
+
+.series-badge {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: var(--accent-blue);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    border: 1px solid rgba(59, 130, 246, 0.25);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.series-badge i {
+    font-size: 10px;
+}
+
+.series-badge.hidden {
+    display: none;
+}
+
+.series-filter-box {
+    width: 100%;
+}
+
+.series-select {
+    width: 100%;
+    background-color: #0b0c12;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.series-select:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}

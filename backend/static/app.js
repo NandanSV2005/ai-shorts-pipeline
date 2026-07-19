@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const emptyState = document.getElementById("empty-state");
     const detailPane = document.getElementById("detail-pane");
     const searchInput = document.getElementById("search-input");
+    const seriesFilter = document.getElementById("series-filter");
     
     // Generator Widget DOM Elements
     const btnToggleGenerator = document.getElementById("btn-toggle-generator");
@@ -23,6 +24,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const generateDate = document.getElementById("generate-date");
     const generateForce = document.getElementById("generate-force");
     const generateTopic = document.getElementById("generate-topic");
+    const generateSeries = document.getElementById("generate-series");
+    const generateEpisode = document.getElementById("generate-episode");
     const btnStartGeneration = document.getElementById("btn-start-generation");
     const consoleContainer = document.getElementById("console-container");
     const consoleOutput = document.getElementById("console-output");
@@ -67,12 +70,39 @@ document.addEventListener("DOMContentLoaded", () => {
     // API CALLS
     // --------------------------------------------------------------------------
 
+    // Populate unique series dropdown filter
+    function populateSeriesFilter() {
+        if (!seriesFilter) return;
+        const selectedVal = seriesFilter.value;
+        const uniqueSeries = new Set();
+        runs.forEach(run => {
+            if (run.series) {
+                uniqueSeries.add(run.series);
+            }
+        });
+        
+        seriesFilter.innerHTML = '<option value="">All Series</option>';
+        Array.from(uniqueSeries).sort().forEach(s => {
+            const opt = document.createElement("option");
+            opt.value = s;
+            opt.textContent = s;
+            seriesFilter.appendChild(opt);
+        });
+        
+        if (uniqueSeries.has(selectedVal)) {
+            seriesFilter.value = selectedVal;
+        } else {
+            seriesFilter.value = "";
+        }
+    }
+
     // Fetch all runs
     async function fetchRuns() {
         try {
             const response = await fetch("/api/runs");
             if (!response.ok) throw new Error("Failed to fetch runs.");
-            runs = await response.ok ? await response.json() : [];
+            runs = response.ok ? await response.json() : [];
+            populateSeriesFilter();
             renderRunsList();
         } catch (error) {
             console.error("Error fetching runs:", error);
@@ -149,6 +179,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const dateStr = generateDate.value;
         const force = generateForce.checked;
         const topic = generateTopic.value ? generateTopic.value.trim() : null;
+        const series = generateSeries.value ? generateSeries.value.trim() : null;
+        const episodeVal = generateEpisode.value ? generateEpisode.value.trim() : null;
+        const episode = episodeVal ? parseInt(episodeVal, 10) : null;
 
         if (!dateStr) {
             alert("Please select a date first.");
@@ -168,7 +201,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ date_str: dateStr, force, topic })
+                body: JSON.stringify({ date_str: dateStr, force, topic, series, episode })
             });
 
             if (!response.ok) {
@@ -278,9 +311,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Helper to get filtered list based on current selection
     function getFilteredRuns() {
+        const seriesFilterVal = seriesFilter ? seriesFilter.value : "";
         return runs.filter(run => {
             // Apply filter
             if (currentFilter === "unreviewed" && run.approval_status !== "unreviewed") {
+                return false;
+            }
+            // Apply series filter
+            if (seriesFilterVal && run.series !== seriesFilterVal) {
                 return false;
             }
             // Apply search
@@ -314,9 +352,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 ? `<span class="warn-badge"><i class="fa-solid fa-triangle-exclamation"></i> ${run.warnings_count}</span>` 
                 : "";
 
+            // Series badge check
+            const seriesBadge = run.series 
+                ? `<span class="series-badge" title="${run.series}${run.episode !== null ? ' Ep. ' + run.episode : ''}"><i class="fa-solid fa-layer-group"></i> ${run.series}${run.episode !== null ? ' Ep. ' + run.episode : ''}</span>`
+                : "";
+
             card.innerHTML = `
                 <div class="run-card-header">
                     <span class="run-card-date">${run.date}</span>
+                    ${seriesBadge}
                     <div class="status-dot-container">
                         <span class="status-dot ${run.approval_status}"></span>
                         <span style="font-size: 11px; text-transform: capitalize; color: var(--text-secondary)">${run.approval_status}</span>
@@ -349,6 +393,16 @@ document.addEventListener("DOMContentLoaded", () => {
         detailDate.textContent = detail.date;
         detailTitle.textContent = detail.title;
         updateStatusBadge(detail.approval_status);
+
+        const detailSeriesBadge = document.getElementById("detail-series-badge");
+        if (detailSeriesBadge) {
+            if (detail.series) {
+                detailSeriesBadge.textContent = `${detail.series}${detail.episode !== null ? ' Ep. ' + detail.episode : ''}`;
+                detailSeriesBadge.classList.remove("hidden");
+            } else {
+                detailSeriesBadge.classList.add("hidden");
+            }
+        }
 
         // Render Video Player
         if (detail.video_url) {
@@ -568,6 +622,12 @@ document.addEventListener("DOMContentLoaded", () => {
     btnStartGeneration.addEventListener("click", () => {
         startGeneration();
     });
+
+    if (seriesFilter) {
+        seriesFilter.addEventListener("change", () => {
+            renderRunsList();
+        });
+    }
 
     // Initial Fetch & Active run checks
     fetchRuns();
