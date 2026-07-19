@@ -838,9 +838,7 @@ body::-webkit-scrollbar-thumb:hover {
     letter-spacing: 0.5px;
 }
 
-.form-row input[type="date"],
-.form-row input[type="text"],
-.form-row input[type="number"] {
+.form-row input:not([type="checkbox"]) {
     background-color: #0b0c12;
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -852,9 +850,7 @@ body::-webkit-scrollbar-thumb:hover {
     transition: var(--transition);
 }
 
-.form-row input[type="date"]:focus,
-.form-row input[type="text"]:focus,
-.form-row input[type="number"]:focus {
+.form-row input:not([type="checkbox"]):focus {
     border-color: var(--accent-blue);
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
 }
