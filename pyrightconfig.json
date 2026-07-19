@@ -1,0 +1,19 @@
+{
+  "include": [
+    "backend",
+    "scripts",
+    "run_pipeline.py"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    "outputs"
+  ],
+  "reportMissingImports": "warning",
+  "venvPath": "c:/Users/Nandan SV/Desktop/Video_generator",
+  "venv": ".venv",
+  "extraPaths": [
+    "c:/Users/Nandan SV/Desktop/Video_generator/.venv/Lib/site-packages",
+    "C:/Users/Nandan SV/AppData/Local/Programs/Python/Python314/Lib/site-packages"
+  ]
+}

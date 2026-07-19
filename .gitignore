@@ -1,0 +1,33 @@
+# ==============================================================================
+# Git Ignore Rules for Faceless YouTube Automation Pipeline
+# ==============================================================================
+
+# Environment configuration (secrets)
+.env
+
+# Virtual environment folder
+.venv/
+venv/
+ENV/
+env/
+
+# Python execution artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local FFmpeg binaries
+backend/bin/
+
+# Generated outputs
+outputs/
+
+# Local database file
+database/pipeline.db
+
+# Logs
+logs/
+
+# Large gameplay binary video files
+assets/gameplay/*.mp4

@@ -1,0 +1,11 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/.venv/Lib/site-packages",
+    "C:/Users/Nandan SV/AppData/Local/Programs/Python/Python314/Lib/site-packages"
+  ],
+  "python.autoComplete.extraPaths": [
+    "${workspaceFolder}/.venv/Lib/site-packages",
+    "C:/Users/Nandan SV/AppData/Local/Programs/Python/Python314/Lib/site-packages"
+  ]
+}

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipeline Review Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fa-solid fa-clapperboard logo-icon"></i>
+                    <h2>Reviewer</h2>
+                </div>
+                <div class="niche-title">YouTube Video Automation</div>
+            </div>
+
+            <!-- Pipeline Generator Widget -->
+            <div class="generator-widget">
+                <button class="generator-header-btn" id="btn-toggle-generator">
+                    <span><i class="fa-solid fa-wand-magic-sparkles"></i> Generate New Video</span>
+                    <i class="fa-solid fa-chevron-down toggle-icon" id="generator-chevron"></i>
+                </button>
+                <div class="generator-body hidden" id="generator-body">
+                    <div class="form-row">
+                        <label for="generate-date">Run Date</label>
+                        <input type="date" id="generate-date">
+                    </div>
+                    <div class="form-row">
+                        <label for="generate-topic">Manual Topic (Optional)</label>
+                        <input type="text" id="generate-topic" placeholder="e.g. History of the Dynasphere">
+                    </div>
+                    <div class="form-row checkbox-row">
+                        <input type="checkbox" id="generate-force">
+                        <label for="generate-force">Force overwrite cache</label>
+                    </div>
+                    <button id="btn-start-generation" class="btn-primary">
+                        <i class="fa-solid fa-play"></i> Start Generation
+                    </button>
+                    <!-- Log Console -->
+                    <div class="console-container hidden" id="console-container">
+                        <div class="console-header">
+                            <span><i class="fa-solid fa-terminal"></i> Build Logs</span>
+                            <span class="pulse-dot" id="console-pulse"></span>
+                        </div>
+                        <pre class="console-output scrollbar" id="console-output">Terminal initialized...</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="filter-controls">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="search-input" placeholder="Search by title or date...">
+                </div>
+                <div class="toggle-group">
+                    <button id="btn-unreviewed" class="toggle-btn active">Unreviewed</button>
+                    <button id="btn-all" class="toggle-btn">All Runs</button>
+                </div>
+            </div>
+
+            <!-- Runs List -->
+            <div class="runs-list-container">
+                <div id="runs-list" class="runs-list">
+                    <!-- Dynamic Run Cards go here -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content (Detail View) -->
+        <main class="main-content">
+            <!-- Empty State Placeholder -->
+            <div id="empty-state" class="empty-state">
+                <i class="fa-solid fa-photo-film placeholder-icon"></i>
+                <h3>Select a run to begin review</h3>
+                <p>Choose a dated pipeline execution from the sidebar list to inspect the video, script, metadata, and fact-checking report.</p>
+            </div>
+
+            <!-- Detail Pane -->
+            <div id="detail-pane" class="detail-pane hidden">
+                <!-- Top Details Header -->
+                <header class="detail-header">
+                    <div class="title-meta">
+                        <span id="detail-date" class="date-badge">YYYY-MM-DD</span>
+                        <h1 id="detail-title">Video Title Placeholder</h1>
+                    </div>
+                    <div class="status-badge-container">
+                        <span id="detail-status" class="status-badge unreviewed">Unreviewed</span>
+                    </div>
+                </header>
+
+                <!-- Detail Body Grid -->
+                <div class="detail-grid">
+                    <!-- Left Column: Video & Preview -->
+                    <div class="detail-left">
+                        <div class="card video-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-play"></i> Video Output</h3>
+                            </div>
+                            <div class="video-container">
+                                <video id="video-player" controls preload="metadata">
+                                    Your browser does not support the video tag.
+                                </video>
+                                <div id="video-error" class="video-error-placeholder hidden">
+                                    <i class="fa-regular fa-face-frown error-icon"></i>
+                                    <h4>No final video output found</h4>
+                                    <p>The `video.mp4` file is not generated or still building for this run.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Thumbnail Preview -->
+                        <div class="card thumbnail-card">
+                            <div class="card-header">
+                                <h3><i class="fa-regular fa-image"></i> Generated Thumbnail</h3>
+                            </div>
+                            <div class="thumbnail-container">
+                                <img id="thumbnail-img" src="" alt="Run Thumbnail">
+                                <div id="thumbnail-error" class="thumbnail-error-placeholder hidden">
+                                    <p>No thumbnail.png found</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Tabs (Script, Metadata, Fact Check) -->
+                    <div class="detail-right">
+                        <div class="tabs-container">
+                            <div class="tab-headers">
+                                <button class="tab-btn active" data-tab="tab-fact-check">
+                                    <i class="fa-solid fa-shield-check"></i> Fact Check
+                                    <span id="badge-warning-count" class="tab-warn-badge">0</span>
+                                </button>
+                                <button class="tab-btn" data-tab="tab-seo">
+                                    <i class="fa-solid fa-hashtag"></i> SEO & Meta
+                                </button>
+                                <button class="tab-btn" data-tab="tab-script">
+                                    <i class="fa-solid fa-file-lines"></i> Script Text
+                                </button>
+                            </div>
+
+                            <div class="tab-contents">
+                                <!-- Tab: Fact Check -->
+                                <div id="tab-fact-check" class="tab-content active">
+                                    <div class="fact-check-summary" id="fact-check-summary-text">
+                                        Fact check status text...
+                                    </div>
+                                    <div id="fact-check-list" class="fact-check-list">
+                                        <!-- Dynamic Fact Check items -->
+                                    </div>
+                                </div>
+
+                                <!-- Tab: SEO -->
+                                <div id="tab-seo" class="tab-content">
+                                    <div class="seo-grid">
+                                        <!-- Part 1 Short -->
+                                        <div class="seo-part-card">
+                                            <h4><i class="fa-solid fa-scissors"></i> Part 1 Short</h4>
+                                            <div class="seo-field">
+                                                <label>YouTube Title</label>
+                                                <div class="seo-title-box" id="seo-title-part1">Part 1 Title</div>
+                                            </div>
+                                            <div class="seo-field">
+                                                <label>Description</label>
+                                                <div class="seo-desc-box scrollbar" id="seo-description-part1">Part 1 Description</div>
+                                            </div>
+                                            <div class="seo-field">
+                                                <label>Tags</label>
+                                                <div class="seo-tags-box" id="seo-tags-part1"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Part 2 Short -->
+                                        <div class="seo-part-card">
+                                            <h4><i class="fa-solid fa-scissors"></i> Part 2 Short</h4>
+                                            <div class="seo-field">
+                                                <label>YouTube Title</label>
+                                                <div class="seo-title-box" id="seo-title-part2">Part 2 Title</div>
+                                            </div>
+                                            <div class="seo-field">
+                                                <label>Description</label>
+                                                <div class="seo-desc-box scrollbar" id="seo-description-part2">Part 2 Description</div>
+                                            </div>
+                                            <div class="seo-field">
+                                                <label>Tags</label>
+                                                <div class="seo-tags-box" id="seo-tags-part2"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tab: Script -->
+                                <div id="tab-script" class="tab-content">
+                                    <div class="script-box scrollbar" id="script-content">
+                                        Script narration text...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Sticky Actions -->
+                <footer class="detail-actions">
+                    <button id="btn-reject" class="action-btn reject-btn">
+                        <i class="fa-solid fa-circle-xmark"></i> Reject Run
+                    </button>
+                    <button id="btn-approve" class="action-btn approve-btn">
+                        <i class="fa-solid fa-circle-check"></i> Approve Video
+                    </button>
+                </footer>
+            </div>
+        </main>
+    </div>
+    <script src="/static/app.js"></script>
+</body>
+</html>
