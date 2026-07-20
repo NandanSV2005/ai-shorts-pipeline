@@ -617,6 +617,19 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!confirmed) return;
             
             try {
+                // Pause and clear video player & thumbnail sources to release browser file locks
+                if (videoPlayer) {
+                    videoPlayer.pause();
+                    videoPlayer.removeAttribute("src");
+                    videoPlayer.load();
+                }
+                if (thumbnailImg) {
+                    thumbnailImg.removeAttribute("src");
+                }
+                
+                // Allow a brief moment for browser and server to release file descriptors
+                await new Promise(resolve => setTimeout(resolve, 200));
+                
                 btnDelete.disabled = true;
                 btnDelete.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Deleting...`;
                 
@@ -625,7 +638,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
                 
                 if (!response.ok) {
-                    throw new Error("Failed to delete the run.");
+                    const errDetail = await response.json();
+                    throw new Error(errDetail.detail || "Failed to delete the run.");
                 }
                 
                 // Remove from local runs state

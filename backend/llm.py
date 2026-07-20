@@ -54,7 +54,7 @@ def generate_text(prompt: str, system_instruction: str | None = None) -> str:
             ]"""
 
         # Step 03: Script Writer
-        elif "draft a complete, detailed youtube script" in prompt_lower:
+        elif "draft a complete youtube script" in prompt_lower or "script to revise" in prompt_lower:
             return """[HOOK]
 [SCENE: Vintage footage of a giant rolling wheel on a beach]
 Have you ever wanted to travel inside a giant rolling wheel? In 1930, one British inventor thought this was the future of transportation.
@@ -122,6 +122,7 @@ What failed invention should we cover next? Let us know in the comments, and don
         
         import google.genai as genai
         from google.genai import types
+        import time
         
         client = genai.Client(api_key=GEMINI_API_KEY)
         
@@ -132,13 +133,27 @@ What failed invention should we cover next? Let us know in the comments, and don
             system_instruction=system_instruction
         )
         
-        response = client.models.generate_content(
-            model="gemini-3.5-flash",
-            contents=prompt,
-            config=config
-        )
+        max_retries = 3
+        backoff_sec = 2.0
+        response = None
+        for attempt in range(max_retries + 1):
+            try:
+                response = client.models.generate_content(
+                    model="gemini-3.5-flash",
+                    contents=prompt,
+                    config=config
+                )
+                break
+            except Exception as e:
+                err_str = str(e).lower()
+                if ("429" in err_str or "resource_exhausted" in err_str or "quota" in err_str) and attempt < max_retries:
+                    print(f"[LLM Interface] Gemini rate limit hit (429/quota). Retrying in {backoff_sec} seconds (Attempt {attempt+1}/{max_retries})...")
+                    time.sleep(backoff_sec)
+                    backoff_sec *= 2
+                else:
+                    raise e
         
-        if not response.text:
+        if not response or not response.text:
             raise RuntimeError("Gemini returned an empty response.")
         return response.text
 
@@ -147,6 +162,7 @@ What failed invention should we cover next? Let us know in the comments, and don
             raise ValueError("OPENAI_API_KEY is not set in the environment or .env file.")
         
         from openai import OpenAI
+        import time
         client = OpenAI(api_key=OPENAI_API_KEY)
         
         messages = []
@@ -154,11 +170,26 @@ What failed invention should we cover next? Let us know in the comments, and don
             messages.append({"role": "system", "content": system_instruction})
         messages.append({"role": "user", "content": prompt})
         
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=messages,
-            temperature=0.7,
-        )
+        max_retries = 3
+        backoff_sec = 2.0
+        response = None
+        for attempt in range(max_retries + 1):
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=messages,
+                    temperature=0.7,
+                )
+                break
+            except Exception as e:
+                err_str = str(e).lower()
+                if ("429" in err_str or "rate" in err_str or "quota" in err_str) and attempt < max_retries:
+                    print(f"[LLM Interface] OpenAI rate limit hit (429/quota). Retrying in {backoff_sec} seconds (Attempt {attempt+1}/{max_retries})...")
+                    time.sleep(backoff_sec)
+                    backoff_sec *= 2
+                else:
+                    raise e
+                    
         content = response.choices[0].message.content  # type: ignore
         if not content:
             raise RuntimeError("OpenAI returned an empty response.")

@@ -296,10 +296,29 @@ def delete_run_endpoint(date_str: str):
     output_dir = OUTPUTS_DIR / date_str
     if output_dir.exists():
         import shutil
-        try:
-            shutil.rmtree(output_dir)
-        except Exception as e:
-            print(f"Error deleting outputs directory: {e}")
+        import time
+        import gc
+        
+        # Run garbage collection to clean up unclosed file handles in Python memory
+        gc.collect()
+        
+        deleted = False
+        last_error = None
+        for attempt in range(3):
+            try:
+                shutil.rmtree(output_dir)
+                deleted = True
+                break
+            except Exception as e:
+                last_error = e
+                print(f"Delete attempt {attempt + 1} failed for {output_dir}: {e}. Retrying in 200ms...")
+                time.sleep(0.2)
+                
+        if not deleted:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to delete outputs directory: {last_error}. Files may be locked by another process."
+            )
             
     # 2. Delete logs logs/generation_date_str.log
     log_file_path = LOGS_DIR / f"generation_{date_str}.log"

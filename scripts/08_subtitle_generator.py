@@ -166,7 +166,7 @@ def split_words_into_chunks(words: list, min_words: int = 5, max_words: int = 8)
             i += take
     return chunks
 
-def rechunk_srt(srt_path: Path) -> None:
+def rechunk_srt(srt_path: Path, min_words: int = 5, max_words: int = 8) -> None:
     if not srt_path.exists():
         return
         
@@ -175,8 +175,7 @@ def rechunk_srt(srt_path: Path) -> None:
         content = f.read()
         
     blocks = re.split(r'\n\s*\n', content.strip())
-    new_segments = []
-    
+    all_words = []
     for block in blocks:
         lines = [l.strip() for l in block.splitlines() if l.strip()]
         if len(lines) < 3:
@@ -194,23 +193,45 @@ def rechunk_srt(srt_path: Path) -> None:
         if not words:
             continue
             
-        chunks = split_words_into_chunks(words)
         total_words = len(words)
-        current_start = start_seconds
         total_duration = end_seconds - start_seconds
-        
-        for chunk in chunks:
-            chunk_words_count = len(chunk)
-            duration = total_duration * (chunk_words_count / total_words)
-            chunk_end = current_start + duration
-            
-            new_segments.append({
-                "start": current_start,
-                "end": chunk_end,
-                "text": " ".join(chunk)
+        for idx, word in enumerate(words):
+            word_start = start_seconds + total_duration * (idx / total_words)
+            word_end = start_seconds + total_duration * ((idx + 1) / total_words)
+            all_words.append({
+                "word": word,
+                "start": word_start,
+                "end": word_end
             })
-            current_start = chunk_end
             
+    if not all_words:
+        return
+        
+    new_segments = []
+    i = 0
+    total_words_count = len(all_words)
+    
+    while i < total_words_count:
+        remaining = total_words_count - i
+        if remaining <= max_words:
+            take = remaining
+        elif remaining < min_words + min_words:
+            take = remaining // 2
+        else:
+            take = 6
+            
+        chunk_words = all_words[i:i+take]
+        chunk_text = " ".join([w["word"] for w in chunk_words])
+        chunk_start = chunk_words[0]["start"]
+        chunk_end = chunk_words[-1]["end"]
+        
+        new_segments.append({
+            "start": chunk_start,
+            "end": chunk_end,
+            "text": chunk_text
+        })
+        i += take
+        
     with open(srt_path, "w", encoding="utf-8") as f:
         for idx, seg in enumerate(new_segments):
             start_str = format_srt_time(seg["start"])
@@ -280,6 +301,7 @@ def find_split_timestamp(script_path: Path, srt_path: Path) -> float:
         text_lines = lines[2:]
         text = " ".join(text_lines)
         
+        end_seconds = 0.0
         times = time_line.split("-->")
         if len(times) == 2:
             end_time_str = times[1].strip().replace(",", ".")
@@ -392,7 +414,12 @@ def generate_subtitles_and_render(date_str: str, force: bool = False) -> None:
         return
 
     # 1. Transcribe audio to generate subtitles.srt
-    if MOCK_PIPELINE:
+    subtitles_raw_file = output_dir / "subtitles_raw.srt"
+    if subtitles_raw_file.exists():
+        print(f"[08 Subtitles] Using raw subtitles generated during voice synthesis...")
+        import shutil
+        shutil.copy(subtitles_raw_file, srt_file)
+    elif MOCK_PIPELINE:
         generate_estimated_srt(script_file, srt_file)
         print(f"[08 Subtitles] Generated estimated subtitles file: {srt_file}")
     else:

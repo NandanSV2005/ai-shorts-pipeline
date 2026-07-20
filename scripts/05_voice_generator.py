@@ -41,17 +41,17 @@ def extract_narration(script_path: Path) -> str:
     return " ".join(narration_lines)
 
 def run_mock_tts(text: str, output_file: Path) -> None:
-    """Generates a silent MP3 file with duration proportional to the text word count."""
+    """Generates a low-volume pulsed beep MP3 file with duration proportional to the text word count."""
     word_count = len(text.split())
     # Average speech rate is ~150 words per minute (2.5 words per second)
     duration = max(5, int(word_count / 2.5))
-    print(f"[05 Voice Generator] [MOCK] Generating a {duration}-second silent MP3 placeholder...")
+    print(f"[05 Voice Generator] [MOCK] Generating a {duration}-second mock beep MP3 placeholder...")
     
-    # Run FFmpeg command to generate silent audio
+    # Run FFmpeg command to generate pulsed beep audio
     cmd = [
         "ffmpeg", "-y",
         "-f", "lavfi",
-        "-i", f"anullsrc=r=24000:cl=mono",
+        "-i", f"sine=f=400:r=24000,volume=0.05*lt(mod(t\\,1.5)\\,0.2)",
         "-t", str(duration),
         "-q:a", "9",
         "-acodec", "libmp3lame",
@@ -64,12 +64,23 @@ def run_mock_tts(text: str, output_file: Path) -> None:
         with open(output_file, "wb") as f:
             f.write(b"\x00" * 4000)
 
-async def run_edge_tts(text: str, output_file: Path) -> None:
-    """Calls Edge TTS API to generate voiceover."""
+async def run_edge_tts(text: str, output_file: Path, srt_file: Path) -> None:
+    """Calls Edge TTS API to generate voiceover and timing subtitles."""
     print(f"[05 Voice Generator] Using Edge-TTS (Voice: {EDGE_TTS_VOICE})...")
     import edge_tts
-    communicate = edge_tts.Communicate(text, EDGE_TTS_VOICE)
-    await communicate.save(str(output_file))
+    communicate = edge_tts.Communicate(text, EDGE_TTS_VOICE, boundary="WordBoundary")
+    submaker = edge_tts.SubMaker()
+    with open(output_file, "wb") as fp:
+        async for chunk in communicate.stream():
+            if chunk["type"] == "audio":
+                fp.write(chunk["data"])
+            elif chunk["type"] == "WordBoundary":
+                submaker.feed(chunk)
+                
+    # Save raw srt timings
+    with open(srt_file, "w", encoding="utf-8") as f:
+        f.write(submaker.get_srt())
+    print(f"[05 Voice Generator] Saved raw subtitles to: {srt_file}")
 
 def run_openai_tts(text: str, output_file: Path) -> None:
     """Calls OpenAI API to generate voiceover."""
@@ -154,6 +165,7 @@ def generate_voiceover(date_str: str, force: bool = False) -> None:
     output_dir = get_output_dir(date_str)
     script_file = output_dir / "script.txt"
     voice_file = output_dir / "voice.mp3"
+    srt_raw_file = output_dir / "subtitles_raw.srt"
 
     if not script_file.exists():
         raise FileNotFoundError(f"Script file not found for {date_str}. Run 03_script_writer.py first.")
@@ -175,7 +187,7 @@ def generate_voiceover(date_str: str, force: bool = False) -> None:
 
     try:
         if TTS_PROVIDER == "edge-tts":
-            asyncio.run(run_edge_tts(text, voice_file))
+            asyncio.run(run_edge_tts(text, voice_file, srt_raw_file))
         elif TTS_PROVIDER == "openai":
             run_openai_tts(text, voice_file)
         elif TTS_PROVIDER == "elevenlabs":
@@ -191,7 +203,7 @@ def generate_voiceover(date_str: str, force: bool = False) -> None:
         print(f"[05 Voice Generator] Primary TTS provider '{TTS_PROVIDER}' failed: {e}. Falling back to edge-tts.")
         try:
             # Fallback to edge-tts if not mock
-            asyncio.run(run_edge_tts(text, voice_file))
+            asyncio.run(run_edge_tts(text, voice_file, srt_raw_file))
             print(f"[05 Voice Generator] Fallback voiceover saved to: {voice_file}")
         except Exception as fallback_err:
             print(f"[ERROR] Fallback edge-tts failed too: {fallback_err}. Generating mock silent audio.")
