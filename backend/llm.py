@@ -88,9 +88,33 @@ def generate_text(prompt: str, system_instruction: str | None = None) -> str:
         # Step 01: Topic Generator
         if "generate a single new video topic" in prompt_lower:
             date_str = get_active_date()
-            import hashlib
-            h = int(hashlib.md5(date_str.encode()).hexdigest(), 16)
-            topic_index = h % len(MOCK_TOPICS)
+            series = None
+            episode = None
+            try:
+                from backend.config import OUTPUTS_DIR
+                import json
+                metadata_file = OUTPUTS_DIR / date_str / "metadata.json"
+                if metadata_file.exists():
+                    with open(metadata_file, "r", encoding="utf-8") as f:
+                        meta = json.load(f)
+                        series = meta.get("series")
+                        episode = meta.get("episode")
+            except Exception:
+                pass
+                
+            hash_key = date_str
+            if series:
+                hash_key += f"_{series}"
+            if episode is not None:
+                hash_key += f"_ep{episode}"
+                
+            if episode is not None:
+                topic_index = (episode - 1) % len(MOCK_TOPICS)
+            else:
+                import hashlib
+                h = int(hashlib.md5(hash_key.encode()).hexdigest(), 16)
+                topic_index = h % len(MOCK_TOPICS)
+                
             selected_topic = MOCK_TOPICS[topic_index]
             import json
             return json.dumps(selected_topic, indent=2, ensure_ascii=False)

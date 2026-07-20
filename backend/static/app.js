@@ -407,7 +407,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Render Video Player
         if (detail.video_url) {
-            videoPlayer.src = detail.video_url;
+            videoPlayer.src = `${detail.video_url}?t=${Date.now()}`;
             videoPlayer.classList.remove("hidden");
             videoError.classList.add("hidden");
         } else {
@@ -418,7 +418,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Render Thumbnail Image
         if (detail.thumbnail_url) {
-            thumbnailImg.src = detail.thumbnail_url;
+            thumbnailImg.src = `${detail.thumbnail_url}?t=${Date.now()}`;
             thumbnailImg.classList.remove("hidden");
             thumbnailError.classList.add("hidden");
         } else {
