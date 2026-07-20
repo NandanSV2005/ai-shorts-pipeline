@@ -22,55 +22,113 @@ def generate_text(prompt: str, system_instruction: str | None = None) -> str:
         print("[LLM Interface] MOCK_PIPELINE is enabled. Generating simulated response...")
         prompt_lower = prompt.lower()
         
+        # Helper to get current run date directory from CLI args
+        import sys
+        from datetime import datetime
+        def get_active_date() -> str:
+            date_str = datetime.now().strftime("%Y-%m-%d")
+            for idx, arg in enumerate(sys.argv):
+                if arg == "--date" and idx + 1 < len(sys.argv):
+                    date_str = sys.argv[idx + 1]
+                    break
+            return date_str
+
+        # Pool of distinct topics for mock series episodes
+        MOCK_TOPICS = [
+            {
+                "title": "The Strange History of the Dynasphere",
+                "concept": "The Dynasphere was a bizarre cabin-in-a-wheel monowheel vehicle patented in 1930. We explore its futuristic design, how it worked, and why it ultimately rolled into oblivion.",
+                "keywords": ["Dynasphere monowheel", "vintage invention 1930s", "odd retro vehicles", "failed transportation technology"],
+                "visual_style": "vintage archival aesthetic, historical sepia tones, quirky mechanics"
+            },
+            {
+                "title": "The Ford Flivver Fail",
+                "concept": "Henry Ford wanted to make an 'everyman's airplane' called the Flivver. We look at its high-profile development, safety challenges, and the crash that shut down the project.",
+                "keywords": ["Ford Flivver airplane", "Henry Ford aviation", "historic small aircraft", "failed flight technology"],
+                "visual_style": "retro hangar look, black and white newsreels, early aviation vibe"
+            },
+            {
+                "title": "The Apple Pippin Disaster",
+                "concept": "In the mid-90s, Apple tried to conquer the living room with the Pippin game console. We explore how its high price and lack of games led to a swift defeat by PlayStation.",
+                "keywords": ["Apple Pippin console", "retro gaming fail", "Apple 1990s history", "forgotten video game systems"],
+                "visual_style": "90s tech neon, retro game graphics, high-contrast digital"
+            },
+            {
+                "title": "The Sinclair C5 Flop",
+                "concept": "The Sinclair C5 was a futuristic electric trike launched in 1985. We examine the massive hype, its dangerous low-profile design, and why consumers refused to drive it.",
+                "keywords": ["Sinclair C5 electric trike", "80s electric vehicles", "Clive Sinclair inventions", "failed urban transport"],
+                "visual_style": "80s commercial aesthetic, bright plastic textures, futuristic retro styling"
+            },
+            {
+                "title": "The Pawnee Flying Platform",
+                "concept": "The Hiller VZ-1 Pawnee was a flying platform designed for the US military where pilots steered by leaning. We explore its hover mechanics and why it was abandoned.",
+                "keywords": ["Hiller VZ-1 Pawnee", "flying platform hover", "military prototype aircraft", "odd cold war tech"],
+                "visual_style": "military blueprint style, grainy cold war footage, industrial metal tones"
+            }
+        ]
+
+        # Try to extract the title from the prompt
+        title = None
+        for line in prompt.splitlines():
+            if line.startswith("Topic Title:"):
+                title = line.replace("Topic Title:", "").strip()
+                break
+        if not title:
+            try:
+                from backend.config import OUTPUTS_DIR
+                date_str = get_active_date()
+                topic_file = OUTPUTS_DIR / date_str / "topic.json"
+                if topic_file.exists():
+                    import json
+                    with open(topic_file, "r", encoding="utf-8") as f:
+                        title = json.load(f).get("title")
+            except Exception:
+                pass
+
         # Step 01: Topic Generator
         if "generate a single new video topic" in prompt_lower:
-            return """
-            {
-              "title": "The Strange History of the Dynasphere",
-              "concept": "The Dynasphere was a bizarre cabin-in-a-wheel monowheel vehicle patented in 1930. We explore its futuristic design, how it worked, and why it ultimately rolled into oblivion.",
-              "keywords": ["Dynasphere monowheel", "vintage invention 1930s", "odd retro vehicles", "failed transportation technology"],
-              "visual_style": "vintage archival aesthetic, historical sepia tones, quirky mechanics"
-            }
-            """
+            date_str = get_active_date()
+            import hashlib
+            h = int(hashlib.md5(date_str.encode()).hexdigest(), 16)
+            topic_index = h % len(MOCK_TOPICS)
+            selected_topic = MOCK_TOPICS[topic_index]
+            import json
+            return json.dumps(selected_topic, indent=2, ensure_ascii=False)
         
         # Step 04: Fact Checker
         elif "compare the following script against the research report" in prompt_lower or "fact-check" in prompt_lower:
-            return """[
-              {
-                "claim": "The Dynasphere was patented in 1930.",
+            display_title = title or "The Dynasphere"
+            return f"""[
+              {{
+                "claim": "The prototype is named the {display_title}.",
                 "status": "VERIFIED",
-                "explanation": "Confirmed. Dr. Purves patented the Dynasphere in 1930."
-              },
-              {
-                "claim": "It could reach speeds of up to fifty miles per hour.",
+                "explanation": "Verified from research records."
+              }},
+              {{
+                "claim": "It was highly successful in all early tests.",
                 "status": "FLAGGED",
-                "explanation": "Dr. Purves claimed it could reach 50 mph, but actual tests only recorded 25-30 mph. Speeds of 50 mph were never verified."
-              },
-              {
-                "claim": "Leonardo da Vinci inspired the concept.",
-                "status": "VERIFIED",
-                "explanation": "Supported by research showing the monowheel concept was inspired by Leonardo da Vinci sketches."
-              }
+                "explanation": "Exaggeration: documented tests showed stability and control issues during operation."
+              }}
             ]"""
-
         # Step 03: Script Writer
         elif "draft a complete youtube script" in prompt_lower or "script to revise" in prompt_lower:
-            return """[HOOK]
-[SCENE: Vintage footage of a giant rolling wheel on a beach]
-Have you ever wanted to travel inside a giant rolling wheel? In 1930, one British inventor thought this was the future of transportation.
+            display_title = title or "The Dynasphere"
+            return f"""[HOOK]
+[SCENE: Vintage footage matching the style of {display_title}]
+Have you ever wanted to learn about {display_title}? In this episode, we explore the fascinating history of this forgotten invention.
 
 [BODY]
-[SCENE: Historical photographs of Dr. J. A. Purves and his blueprints]
-Meet the Dynasphere. Invented by Dr. John Archibald Purves, this ten-foot-tall steel monowheel was designed to revolutionize how we commute. Powered by a small gasoline engine, the driver sat inside the wheel itself.
+[SCENE: Historical blueprints and blueprints showing details of {display_title}]
+Meet {display_title}. Designed to revolutionize its field, it was highly anticipated by its creators.
 
-[SCENE: Old video of the Dynasphere driving on sand]
-Dr. Purves was highly optimistic, claiming his monowheel could eventually hit speeds of fifty miles per hour. But in reality, it barely scraped thirty. And it had one major, dizzying flaw.
+[SCENE: Old footage demonstrating {display_title} in action]
+People were extremely optimistic, claiming it could change the future of technology. But in reality, it had some major flaws.
 
-[SCENE: Close up of the inner wheels and gears mechanism]
-When the driver accelerated or slammed on the brakes, the passenger carriage would slide up the interior walls of the wheel, swinging back and forth in an effect known as 'gerbilling'. Imagine being stuck in a spinning dryer at thirty miles per hour!
-
-[SCENE: Newspaper clipping reporting on the failure of the vehicle]
-Add to that the fact that steering was nearly impossible, and mud would fly directly into the driver's face, and it's easy to see why the Dynasphere rolled straight into the history books as a failed invention.
+[SCENE: Close up of the mechanical details and problematic features]
+Add to that the fact that it was difficult to steer, expensive to manufacture, and prone to breaking down. It's easy to see why it rolled straight into the history books.
+[SPLIT POINT]
+[SCENE: Summary collage of the invention's legacy]
+Ultimately, {display_title} stands as a testament to human ingenuity and the trials of innovation.
 
 [CTA/OUTRO]
 [SCENE: Modern graphic showing subscribe button]
@@ -79,37 +137,34 @@ What failed invention should we cover next? Let us know in the comments, and don
 
         # Step 02: Research Agent
         elif "generate a detailed research report" in prompt_lower:
-            return """# Research Report: The Dynasphere Monowheel
-
+            display_title = title or "The Dynasphere"
+            return f"""# Research Report: {display_title}
+            
 ## Background
-- The Dynasphere was invented by Dr. J. A. Purves from Taunton, England, in 1930.
-- The concept was inspired by a sketch made by Leonardo da Vinci, aiming to create a simplified vehicle where the driver sits inside the wheel.
+- The {display_title} was a pioneering historical concept developed in the 20th century.
+- Developed by ambitious inventors aiming to simplify transit and create the ultimate vehicle.
 
 ## Technical Specifications & Design
-- The vehicle consisted of an outer steel wheel (3 meters / 10 feet high) lined with rubber, and an inner frame.
-- The inner carriage was mounted on rollers running along rails on the inside of the wheel.
-- Powered by a two-cylinder gasoline engine (or an electric motor in some prototypes) coupled with a three-speed gearbox.
-- Steering was achieved by the driver leaning their body or shifting the gears/gearing to tilt the outer wheel.
+- Features a unique mechanics assembly with custom power drives and steering dynamics.
+- Powered by a compact motor and built using experimental industrial materials of the era.
 
 ## Claims & Performance
-- Dr. Purves claimed it was the vehicle of the future and could eventually reach speeds of up to 50 miles per hour (80 km/h).
-- In actual tests on Brean Sands and at Brooklands, it reached top speeds of approximately 25-30 miles per hour.
-- A smaller electric version was also built.
+- Initial testing showed great promise, with inventors claiming it was highly efficient and fast.
+- Documented testing revealed significant engineering limitations during operation.
 
 ## Why it Failed
-- "Gerbilling": When accelerating or braking, the inner carriage tended to roll up the inside of the wheel instead of staying level, causing a dizzying motion similar to a hamster in a wheel.
-- steering was extremely difficult and imprecise.
-- The open sides exposed the driver and passengers to dirt, rain, and mud thrown up by the wheel.
-- Braking was highly unstable.
+- Main causes of abandonment included steering issues, safety concerns, and high production costs.
+- The project was eventually shelved, becoming a classic example of fascinating but failed technology.
 """
 
         # Step 10: SEO Generator
         elif "seo" in prompt_lower or "tags" in prompt_lower:
-            return """{
-              "title": "The Bizarre 1930 Monowheel That Failed: The Dynasphere",
-              "description": "Step back in time to 1930 to explore the Dynasphere—a giant rolling wheel designed to replace the car. Learn how it worked and why it failed!",
-              "tags": ["Dynasphere", "failed technology", "forgotten inventions", "retro tech", "history of transport", "monowheel"]
-            }"""
+            display_title = title or "The Dynasphere"
+            return f"""{{
+              "title": "The Bizarre Story of {display_title}: A Forgotten Innovation",
+              "description": "Step back in time to explore the fascinating history of {display_title}. Learn how it worked, the high hopes, and why it ultimately failed!",
+              "tags": ["{display_title}", "failed technology", "forgotten inventions", "retro tech", "history of transport"]
+            }}"""
         
         else:
             return "This is a generic mock response from the LLM pipeline."

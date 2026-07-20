@@ -18,9 +18,20 @@ def generate_video_topic(date_str: str, force: bool = False, manual_topic: str |
 
     # Check if file exists and we are not forcing
     if topic_file.exists() and not force:
-        print(f"[01 Topic Generator] Topic already exists for {date_str}. Loading from file.")
-        with open(topic_file, "r", encoding="utf-8") as f:
-            return json.load(f)
+        should_skip = True
+        if manual_topic:
+            try:
+                with open(topic_file, "r", encoding="utf-8") as f:
+                    cached_title = json.load(f).get("title")
+                    if cached_title and cached_title.lower() != manual_topic.lower():
+                        should_skip = False
+            except Exception:
+                should_skip = False
+                
+        if should_skip:
+            print(f"[01 Topic Generator] Topic already exists for {date_str}. Loading from file.")
+            with open(topic_file, "r", encoding="utf-8") as f:
+                return json.load(f)
 
     if manual_topic:
         print(f"[01 Topic Generator] Using manually provided topic override: '{manual_topic}'")

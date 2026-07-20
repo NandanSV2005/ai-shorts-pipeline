@@ -117,9 +117,35 @@ def send_notification(date_str: str, status: str, error_msg: str | None = None) 
 def execute_pipeline(date_str: str, force: bool = False, topic: str | None = None, series: str | None = None, episode: int | None = None) -> None:
     print(f"Starting YouTube Automation Pipeline Run for: {date_str}")
     
-    # Pre-initialize metadata with series & episode info so subsequent steps can load them
     output_dir = get_output_dir(date_str)
+    topic_file = output_dir / "topic.json"
     metadata_file = output_dir / "metadata.json"
+    
+    # Auto-force if configuration changes
+    if not force:
+        if topic and topic_file.exists():
+            try:
+                with open(topic_file, "r", encoding="utf-8") as f:
+                    old_title = json.load(f).get("title")
+                    if old_title and old_title.lower() != topic.lower():
+                        print(f"[Orchestrator] Detected topic change from '{old_title}' to '{topic}'. Auto-forcing regeneration.")
+                        force = True
+            except Exception:
+                pass
+        if metadata_file.exists():
+            try:
+                with open(metadata_file, "r", encoding="utf-8") as f:
+                    old_meta = json.load(f)
+                    if series and old_meta.get("series") != series:
+                        print(f"[Orchestrator] Detected series change from '{old_meta.get('series')}' to '{series}'. Auto-forcing regeneration.")
+                        force = True
+                    if episode is not None and old_meta.get("episode") != episode:
+                        print(f"[Orchestrator] Detected episode change from '{old_meta.get('episode')}' to '{episode}'. Auto-forcing regeneration.")
+                        force = True
+            except Exception:
+                pass
+
+    # Pre-initialize metadata with series & episode info so subsequent steps can load them
     metadata_dict = {}
     if metadata_file.exists():
         try:
