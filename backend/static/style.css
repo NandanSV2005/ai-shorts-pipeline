@@ -1154,7 +1154,7 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 /* On smaller viewport layouts, fall back to single column */
-@media (max-width: 1200px) {
+@media (max-width: 1400px) {
     .youtube-upload-grid.split-parts {
         grid-template-columns: 1fr;
     }

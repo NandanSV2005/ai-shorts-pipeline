@@ -47,13 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const factCheckList = document.getElementById("fact-check-list");
     const badgeWarningCount = document.getElementById("badge-warning-count");
     
-    // SEO tab elements
-    const seoTitlePart1 = document.getElementById("seo-title-part1");
-    const seoDescPart1 = document.getElementById("seo-description-part1");
-    const seoTagsPart1 = document.getElementById("seo-tags-part1");
-    const seoTitlePart2 = document.getElementById("seo-title-part2");
-    const seoDescPart2 = document.getElementById("seo-description-part2");
-    const seoTagsPart2 = document.getElementById("seo-tags-part2");
+
     
     // Script tab elements
     const scriptContentBox = document.getElementById("script-content");
@@ -489,103 +483,7 @@ document.addEventListener("DOMContentLoaded", () => {
             factCheckSummaryText.innerHTML = "No fact-check report has been generated for this run.";
         }
 
-        // Render SEO Metadata
-        function renderTagsHelper(container, tagsList) {
-            container.innerHTML = "";
-            if (tagsList && tagsList.length > 0) {
-                tagsList.forEach(tag => {
-                    const chip = document.createElement("span");
-                    chip.className = "tag-chip";
-                    chip.textContent = tag;
-                    container.appendChild(chip);
-                });
-            } else {
-                container.innerHTML = `<span style="color: var(--text-muted); font-size: 13px;">No tags.</span>`;
-            }
-        }
-
-        const seoGrid = document.getElementById("seo-grid");
-        const seoCardPart2 = document.getElementById("seo-card-part2");
-        const seoCardPart1Header = document.querySelector("#seo-card-part1 h4");
-
-        if (detail.seo) {
-            const pVal = detail.parts || 1;
-            if (pVal === 2) {
-                if (seoGrid) seoGrid.classList.remove("single-part");
-                if (seoCardPart2) seoCardPart2.classList.remove("hidden");
-                if (seoCardPart1Header) seoCardPart1Header.innerHTML = '<i class="fa-solid fa-scissors"></i> Part 1 Short';
-
-                if (detail.seo.part1) {
-                    seoTitlePart1.textContent = detail.seo.part1.title || "No Title.";
-                    seoDescPart1.textContent = detail.seo.part1.description || "No Description.";
-                    renderTagsHelper(seoTagsPart1, detail.seo.part1.tags);
-                    
-                    seoTitlePart2.textContent = detail.seo.part2.title || "No Title.";
-                    seoDescPart2.textContent = detail.seo.part2.description || "No Description.";
-                    renderTagsHelper(seoTagsPart2, detail.seo.part2.tags);
-                } else {
-                    // Fallback for older runs that might have parts=2 but older schema
-                    seoTitlePart1.textContent = detail.seo.title || "No Title.";
-                    seoDescPart1.textContent = detail.seo.description || "No Description.";
-                    renderTagsHelper(seoTagsPart1, detail.seo.tags);
-                    
-                    seoTitlePart2.textContent = "N/A";
-                    seoDescPart2.textContent = "N/A";
-                    seoTagsPart2.innerHTML = `<span style="color: var(--text-muted); font-size: 13px;">No split parts in this run.</span>`;
-                }
-            } else {
-                if (seoGrid) seoGrid.classList.add("single-part");
-                if (seoCardPart2) seoCardPart2.classList.add("hidden");
-                if (seoCardPart1Header) seoCardPart1Header.innerHTML = '<i class="fa-solid fa-film"></i> Video SEO';
-
-                // Single part SEO display
-                const mainTitle = detail.seo.title || (detail.seo.part1 ? detail.seo.part1.title : "No Title.");
-                const mainDesc = detail.seo.description || (detail.seo.part1 ? detail.seo.part1.description : "No Description.");
-                const mainTags = detail.seo.tags || (detail.seo.part1 ? detail.seo.part1.tags : []);
-
-                seoTitlePart1.textContent = mainTitle;
-                seoDescPart1.textContent = mainDesc;
-                renderTagsHelper(seoTagsPart1, mainTags);
-
-                seoTitlePart2.textContent = "N/A";
-                seoDescPart2.textContent = "N/A";
-                seoTagsPart2.innerHTML = ``;
-            }
-        } else {
-            if (seoGrid) seoGrid.classList.remove("single-part");
-            if (seoCardPart2) seoCardPart2.classList.remove("hidden");
-            if (seoCardPart1Header) seoCardPart1Header.innerHTML = '<i class="fa-solid fa-scissors"></i> Part 1 Short';
-
-            seoTitlePart1.textContent = "No SEO Title.";
-            seoDescPart1.textContent = "No SEO Description.";
-            seoTagsPart1.innerHTML = "";
-            seoTitlePart2.textContent = "No SEO Title.";
-            seoDescPart2.textContent = "No SEO Description.";
-            seoTagsPart2.innerHTML = "";
-        }
-
-        // Render Script Text
-        if (detail.script) {
-            const escapedScript = detail.script
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;");
-            
-            const formattedScript = escapedScript.replace(
-                /\[SPLIT POINT\]/g,
-                `<div class="split-point-divider">
-                    <span class="split-line"></span>
-                    <span class="split-badge"><i class="fa-solid fa-scissors"></i> SHORTS SPLIT POINT</span>
-                    <span class="split-line"></span>
-                 </div>`
-            );
-            scriptContentBox.innerHTML = formattedScript;
-        } else {
-            scriptContentBox.innerHTML = `<span style="color: var(--text-muted);">No script text found (script.txt missing).</span>`;
-        }
-
-        // Render YouTube Upload Info Panel
-        const youtubePanel = document.getElementById("youtube-upload-panel");
+        // Populate YouTube Upload Info Tab
         const youtubeBody = document.getElementById("youtube-upload-body");
         
         if (youtubeBody) {
@@ -623,11 +521,32 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 
                 youtubeBody.appendChild(gridElement);
-                if (youtubePanel) youtubePanel.classList.remove("hidden");
             } else {
-                if (youtubePanel) youtubePanel.classList.add("hidden");
+                youtubeBody.innerHTML = `<span style="color: var(--text-muted); font-size: 13.5px;">No SEO metadata found for this run (run Step 10 first).</span>`;
             }
         }
+
+        // Render Script Text
+        if (detail.script) {
+            const escapedScript = detail.script
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+            
+            const formattedScript = escapedScript.replace(
+                /\[SPLIT POINT\]/g,
+                `<div class="split-point-divider">
+                    <span class="split-line"></span>
+                    <span class="split-badge"><i class="fa-solid fa-scissors"></i> SHORTS SPLIT POINT</span>
+                    <span class="split-line"></span>
+                 </div>`
+            );
+            scriptContentBox.innerHTML = formattedScript;
+        } else {
+            scriptContentBox.innerHTML = `<span style="color: var(--text-muted);">No script text found (script.txt missing).</span>`;
+        }
+
+
 
         // Reveal Pane
         emptyState.classList.add("hidden");
