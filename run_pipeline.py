@@ -150,12 +150,28 @@ def execute_pipeline(date_str: str, force: bool = False, topic: str | None = Non
 
     # Pre-initialize metadata with series, episode & parts info so subsequent steps can load them
     metadata_dict = {}
-    if metadata_file.exists():
-        try:
-            with open(metadata_file, "r", encoding="utf-8") as f:
-                metadata_dict = json.load(f)
-        except Exception:
-            pass
+    
+    if force:
+        print(f"[Orchestrator] Force flag active or configuration changed. Cleaning up output files in {output_dir} to avoid cross-contamination...")
+        files_to_clean = [
+            "research.md", "script.txt", "subtitles.srt", "subtitles_raw.srt",
+            "video.mp4", "video_raw.mp4", "video_part1.mp4", "video_part2.mp4",
+            "thumbnail.png", "scenes.json"
+        ]
+        for f_name in files_to_clean:
+            f_path = output_dir / f_name
+            if f_path.exists():
+                try:
+                    f_path.unlink()
+                except Exception as e:
+                    print(f"[Orchestrator] [WARNING] Could not delete {f_name}: {e}")
+    else:
+        if metadata_file.exists():
+            try:
+                with open(metadata_file, "r", encoding="utf-8") as f:
+                    metadata_dict = json.load(f)
+            except Exception:
+                pass
             
     metadata_dict["series"] = series if series else None
     metadata_dict["episode"] = episode if episode is not None else None

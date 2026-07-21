@@ -584,6 +584,51 @@ document.addEventListener("DOMContentLoaded", () => {
             scriptContentBox.innerHTML = `<span style="color: var(--text-muted);">No script text found (script.txt missing).</span>`;
         }
 
+        // Render YouTube Upload Info Panel
+        const youtubePanel = document.getElementById("youtube-upload-panel");
+        const youtubeBody = document.getElementById("youtube-upload-body");
+        
+        if (youtubeBody) {
+            youtubeBody.innerHTML = "";
+            if (detail.seo) {
+                const pVal = detail.parts || 1;
+                let gridElement = document.createElement("div");
+                gridElement.className = "youtube-upload-grid";
+                
+                if (pVal === 2) {
+                    gridElement.classList.add("split-parts");
+                    
+                    const part1Title = detail.seo.part1 ? detail.seo.part1.title : detail.seo.title || "No Title";
+                    const part1Desc = detail.seo.part1 ? detail.seo.part1.description : detail.seo.description || "No Description";
+                    const part1Tags = detail.seo.part1 ? detail.seo.part1.tags : detail.seo.tags || [];
+                    
+                    const part2Title = detail.seo.part2 ? detail.seo.part2.title : "No Title";
+                    const part2Desc = detail.seo.part2 ? detail.seo.part2.description : "No Description";
+                    const part2Tags = detail.seo.part2 ? detail.seo.part2.tags : [];
+                    
+                    // Render Part 1
+                    const part1Block = createUploadBlockDOM(part1Title, part1Desc, part1Tags, '<i class="fa-solid fa-scissors"></i> Part 1 Upload Info');
+                    gridElement.appendChild(part1Block);
+                    
+                    // Render Part 2
+                    const part2Block = createUploadBlockDOM(part2Title, part2Desc, part2Tags, '<i class="fa-solid fa-scissors"></i> Part 2 Upload Info');
+                    gridElement.appendChild(part2Block);
+                } else {
+                    const mainTitle = detail.seo.title || (detail.seo.part1 ? detail.seo.part1.title : "No Title");
+                    const mainDesc = detail.seo.description || (detail.seo.part1 ? detail.seo.part1.description : "No Description");
+                    const mainTags = detail.seo.tags || (detail.seo.part1 ? detail.seo.part1.tags : []);
+                    
+                    const singleBlock = createUploadBlockDOM(mainTitle, mainDesc, mainTags, '<i class="fa-solid fa-film"></i> Video Upload Info');
+                    gridElement.appendChild(singleBlock);
+                }
+                
+                youtubeBody.appendChild(gridElement);
+                if (youtubePanel) youtubePanel.classList.remove("hidden");
+            } else {
+                if (youtubePanel) youtubePanel.classList.add("hidden");
+            }
+        }
+
         // Reveal Pane
         emptyState.classList.add("hidden");
         detailPane.classList.remove("hidden");
@@ -730,6 +775,104 @@ document.addEventListener("DOMContentLoaded", () => {
     if (seriesFilter) {
         seriesFilter.addEventListener("change", () => {
             renderRunsList();
+        });
+    }
+
+    // DOM generators and copy helper functions for the YouTube Upload Panel
+    function createUploadBlockDOM(title, description, tags, headerHtml) {
+        const section = document.createElement("div");
+        section.className = "youtube-part-section";
+        
+        const header = document.createElement("h4");
+        header.innerHTML = headerHtml;
+        section.appendChild(header);
+        
+        // 1. Title Field
+        const titleField = createFieldDOM("Title", title, false);
+        section.appendChild(titleField);
+        
+        // 2. Description Field
+        const descField = createFieldDOM("Description", description, true);
+        section.appendChild(descField);
+        
+        // 3. Tags Field
+        const tagsField = document.createElement("div");
+        tagsField.className = "youtube-upload-field";
+        
+        const tagsHeader = document.createElement("div");
+        tagsHeader.className = "youtube-field-header";
+        
+        const tagsLabel = document.createElement("label");
+        tagsLabel.textContent = "Tags (Comma-Separated for YouTube)";
+        tagsHeader.appendChild(tagsLabel);
+        
+        const tagsCopyBtn = document.createElement("button");
+        tagsCopyBtn.className = "copy-btn";
+        tagsCopyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy Tags';
+        const tagsString = tags ? tags.join(", ") : "";
+        tagsCopyBtn.addEventListener("click", () => handleCopyClick(tagsCopyBtn, tagsString));
+        tagsHeader.appendChild(tagsCopyBtn);
+        
+        tagsField.appendChild(tagsHeader);
+        
+        const tagsList = document.createElement("div");
+        tagsList.className = "youtube-tags-list";
+        if (tags && tags.length > 0) {
+            tags.forEach(tag => {
+                const chip = document.createElement("span");
+                chip.className = "youtube-tag-chip";
+                chip.textContent = tag;
+                tagsList.appendChild(chip);
+            });
+        } else {
+            tagsList.innerHTML = `<span style="color: var(--text-muted); font-size: 13px;">No tags</span>`;
+        }
+        tagsField.appendChild(tagsList);
+        
+        section.appendChild(tagsField);
+        
+        return section;
+    }
+    
+    function createFieldDOM(labelName, textContent, isDesc) {
+        const field = document.createElement("div");
+        field.className = "youtube-upload-field";
+        
+        const header = document.createElement("div");
+        header.className = "youtube-field-header";
+        
+        const label = document.createElement("label");
+        label.textContent = labelName;
+        header.appendChild(label);
+        
+        const copyBtn = document.createElement("button");
+        copyBtn.className = "copy-btn";
+        copyBtn.innerHTML = `<i class="fa-regular fa-copy"></i> Copy ${labelName}`;
+        copyBtn.addEventListener("click", () => handleCopyClick(copyBtn, textContent));
+        header.appendChild(copyBtn);
+        
+        field.appendChild(header);
+        
+        const valDiv = document.createElement("div");
+        valDiv.className = `youtube-field-value ${isDesc ? 'desc-value' : 'title-value'}`;
+        valDiv.textContent = textContent || "";
+        field.appendChild(valDiv);
+        
+        return field;
+    }
+    
+    function handleCopyClick(btn, text) {
+        navigator.clipboard.writeText(text).then(() => {
+            const originalHtml = btn.innerHTML;
+            btn.className = "copy-btn copied";
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+            setTimeout(() => {
+                btn.className = "copy-btn";
+                btn.innerHTML = originalHtml;
+            }, 2000);
+        }).catch(err => {
+            console.error("Failed to copy text: ", err);
+            alert("Clipboard copy failed.");
         });
     }
 
