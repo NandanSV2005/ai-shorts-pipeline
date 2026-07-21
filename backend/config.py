@@ -33,7 +33,7 @@ for directory in [
 # ------------------------------------------------------------------------------
 # Configuration Variables
 # ------------------------------------------------------------------------------
-NICHE = os.getenv("NICHE", "Forgotten Inventions & Failed Tech of the 20th Century")
+NICHE = os.getenv("NICHE", "AI-Generated Fictional Reddit Stories and Confessions")
 
 # LLM Providers
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "gemini").lower()

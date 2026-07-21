@@ -39,7 +39,7 @@ def generate_video_topic(date_str: str, force: bool = False, manual_topic: str |
             "title": manual_topic,
             "concept": f"Manually specified topic about: {manual_topic}.",
             "keywords": [manual_topic.lower()],
-            "visual_style": "vintage documentary aesthetic, historical tones"
+            "visual_style": "bold Reddit text style, gameplay video background"
         }
         # Write to dated output folder
         with open(topic_file, "w", encoding="utf-8") as f:
@@ -63,21 +63,21 @@ def generate_video_topic(date_str: str, force: bool = False, manual_topic: str |
 
     system_instruction = (
         f"You are a YouTube Content Director specializing in the niche: '{NICHE}'. "
-        "Your goal is to suggest one single, highly engaging, highly specific topic for a daily video. "
-        "Each topic must focus on a real, historical, and fascinating invention or technology from the 20th century "
-        "that failed or was forgotten. Ensure the topic has strong narrative potential, visual interest, and appeal "
-        "to a general history/tech audience."
+        "Your goal is to suggest one single, highly engaging, highly dramatic premise for a daily video. "
+        "Each topic must focus on a compelling first-person fictional scenario in the Reddit-story style "
+        "(AITA, relationship drama, malicious compliance, family drama, workplace stories). Ensure the premise has "
+        "strong emotional hooks, high tension, and a major twist or cliffhanger."
     )
 
     prompt = (
-        f"Generate a single new video topic. To prevent duplicates, DO NOT suggest any of these past topics:\n"
+        f"Generate a single new video topic premise. To prevent duplicates, DO NOT suggest any of these past topics:\n"
         f"{past_topics_summary}\n\n"
         "Provide your response as a raw JSON object with EXACTLY the following keys (do not include any conversational text outside the JSON):\n"
         "{\n"
-        '  "title": "A short, viral, punchy YouTube video title.",\n'
-        '  "concept": "A 2-3 sentence engaging summary explaining what the video will cover and why it is interesting.",\n'
-        '  "keywords": ["3 to 5 highly relevant search keywords/phrases for stock footage query"],\n'
-        '  "visual_style": "A brief description of the visual mood, style, and tone (e.g. vintage black and white, retro-futuristic, high-contrast, blueprint diagrams)."\n'
+        '  "title": "A short, viral, dramatic title phrased in first-person (e.g. AITA for Refusing to Give Up My Seat to a Pregnant Woman?).",\n'
+        '  "concept": "A 2-3 sentence summary of the scenario, highlighting the setup, conflict, and the twist.",\n'
+        '  "keywords": ["3 to 5 relevant search keywords/phrases for gameplay or video category search"],\n'
+        '  "visual_style": "A brief description of the visual mood, style, and text overlay color scheme (e.g. high-contrast bold white text, red highlight alert tags, gameplay background)."\n'
         "}"
     )
 

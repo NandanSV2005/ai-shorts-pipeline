@@ -42,22 +42,25 @@ def run_fact_checker(date_str: str, force: bool = False) -> list:
         research_content = f.read()
 
     system_instruction = (
-        "You are an analytical, objective Fact Checker. Your job is to extract key factual claims from a "
-        "video script and cross-reference them against a provided research report. You do not let inaccuracies "
-        "slide. You classify claims as VERIFIED (supported by research), FLAGGED (discrepancy or exaggeration "
-        "identified), or UNVERIFIED (not mentioned in the research at all)."
+        "You are an analytical, objective Story Consistency Checker. Your job is to extract key narrative details "
+        "and plot points from a script, compare them against the story outline, and check for any internal "
+        "contradictions, timeline discrepancies, or character detail changes (e.g. ages, names, relations, or "
+        "established events changing partway through). "
+        "You classify details as VERIFIED (consistent with the outline and itself), FLAGGED (internal contradiction, "
+        "timeline error, or character change detected), or UNVERIFIED (plot hole or detail not established in the outline)."
     )
 
     prompt = (
-        "Compare the following Script against the Research Report and identify 3-5 major factual claims.\n\n"
-        f"Research Report:\n{research_content}\n\n"
+        "Compare the following Script against the Story Outline and check for narrative consistency and timeline accuracy. "
+        "Extract 3-5 major narrative claims or details from the script and verify them.\n\n"
+        f"Story Outline:\n{research_content}\n\n"
         f"Script:\n{script_content}\n\n"
         "Provide your analysis as a raw JSON array of objects (do not include conversational text or markdown blocks outside the JSON):\n"
         "[\n"
         "  {\n"
-        '    "claim": "The exact statement or claim made in the script.",\n'
+        '    "claim": "The narrative detail, character profile, or timeline statement checked.",\n'
         '    "status": "VERIFIED or FLAGGED or UNVERIFIED",\n'
-        '    "explanation": "Provide a detailed reason referencing the research report."\n'
+        '    "explanation": "Provide a detailed reason explaining the consistency or identifying the exact contradiction/plot hole."\n'
         "  }\n"
         "]"
     )
@@ -74,14 +77,14 @@ def run_fact_checker(date_str: str, force: bool = False) -> list:
             
         fact_check_results = [
             {
-                "claim": f"The prototype is named the {topic_title}.",
+                "claim": "The narrator is a bricklayer who was physically exhausted after a 12-hour shift.",
                 "status": "VERIFIED",
-                "explanation": "Verified from mock research reports."
+                "explanation": "Consistent with character profile and timeline in the story outline."
             },
             {
-                "claim": "It is capable of hovering up to 10,000 feet.",
+                "claim": "The narrator's partner supported them from the beginning.",
                 "status": "FLAGGED",
-                "explanation": " Exaggeration: prototype only hovered at lower altitude, not 10,000 feet."
+                "explanation": "Contradiction: the script states the partner was horrified, told them to apologize, and stopped returning texts."
             }
         ]
     else:

@@ -34,26 +34,27 @@ def run_research(date_str: str, force: bool = False) -> str:
     keywords = ", ".join(topic_data.get("keywords", []))
 
     system_instruction = (
-        "You are an expert historical researcher and investigator. Your job is to gather and compile "
-        "comprehensive, accurate, and detailed factual research reports on obscure 20th-century failed inventions. "
-        "Focus on: Background (Who, When, Where, Why), Design & Specifications, Performance Claims, and specific "
-        "engineering/usage details on why it failed or rolled back."
+        "You are an expert creative writer and story planner. Your job is to outline compelling, dramatic fictional "
+        "first-person stories in the Reddit-story style (AITA, relationship drama, workplace revenge, etc.). "
+        "Focus on defining key story beats, character motivations, and structural escalation."
     )
 
     prompt = (
-        f"Topic Title: {title}\n"
-        f"Topic Concept: {concept}\n"
+        f"Story Premise: {title}\n"
+        f"Concept: {concept}\n"
         f"Keywords: {keywords}\n\n"
-        "Generate a detailed research report on this topic. Structure your response in Markdown as follows:\n\n"
-        "# Research Report: [Topic Name]\n\n"
-        "## Background\n"
-        "- Clear, bulleted historical background including inventors, dates, and motivations.\n\n"
-        "## Technical Specifications & Design\n"
-        "- Mechanics, materials, power sources, dimensions, controls, and layout details.\n\n"
-        "## Claims & Performance\n"
-        "- Speeds, capabilities, or benefits claimed by the inventor versus documented test results.\n\n"
-        "## Why it Failed\n"
-        "- Mechanical, safety, environmental, steering, or cost issues that caused the invention to fail."
+        "Outline a detailed fictional story based on this premise. Structure your response in Markdown as follows:\n\n"
+        "# Story Outline: [Premise Name]\n\n"
+        "## Character Profiles\n"
+        "- Detail the narrator, key conflict partners, and secondary characters (names, ages, relationships, motivations).\n\n"
+        "## Story Beats & Structure\n"
+        "- Setup: The initial situation and status quo.\n"
+        "- Conflict: The catalyst event that starts the drama.\n"
+        "- Escalation: How the situation worsens or gets more complicated.\n"
+        "- Cliffhanger: The pivotal twist or question right before the split point.\n"
+        "- Twist/Resolution: How the mystery is revealed or how the story concludes.\n\n"
+        "## Emotional Arc & Pacing\n"
+        "- Outline the emotional tone changes and key pacing advice to keep the viewer hooked throughout."
     )
 
     print(f"[02 Research Agent] Gathering research for: '{title}'...")

@@ -100,13 +100,13 @@ def generate_thumbnail(date_str: str, force: bool = False) -> None:
         font_sub = ImageFont.load_default()
 
     # Draw Category Tag centered
-    draw.text((width // 2, int(height * 0.38)), "FORGOTTEN HISTORY", fill=(255, 70, 70), font=font_sub, anchor="mm")
+    draw.text((width // 2, int(height * 0.38)), "REDDIT STORIES", fill=(255, 70, 70), font=font_sub, anchor="mm")
 
     # Draw Title Text centered
     draw.text((width // 2, int(height * 0.48)), thumbnail_text, fill=(255, 255, 255), font=font_title, stroke_width=2, stroke_fill=(0, 0, 0), anchor="mm", align="center")
 
     # Draw subtitle/hook centered
-    draw.text((width // 2, int(height * 0.58)), "WHY IT FAILED!", fill=(255, 215, 0), font=font_sub, stroke_width=1, stroke_fill=(0, 0, 0), anchor="mm")
+    draw.text((width // 2, int(height * 0.58)), "AITA?", fill=(255, 215, 0), font=font_sub, stroke_width=1, stroke_fill=(0, 0, 0), anchor="mm")
 
     # Load series/episode from metadata if available
     metadata_file = output_dir / "metadata.json"

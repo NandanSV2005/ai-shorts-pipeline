@@ -50,27 +50,28 @@ def generate_seo_metadata(date_str: str, force: bool = False) -> dict:
 
     system_instruction = (
         "You are an expert YouTube SEO Optimization specialist. Your goal is to maximize click-through rate (CTR) "
-        "and search rankings for historical documentary videos. You write compelling, click-worthy titles "
-        "and thorough, keyword-rich descriptions using standard YouTube best practices."
+        "and search rankings for AI Reddit-style stories and confessions (AITA, relationship drama, etc.). "
+        "You write highly dramatic, hook-driven, click-worthy titles (e.g. phrased as direct questions or dramatic statements) "
+        "and thorough description texts containing a short disclosure noting the story is fictional."
     )
 
     prompt = (
-        f"Original Topic Title: {title_concept}\n"
-        f"Concept: {concept}\n"
+        f"Story Premise: {title_concept}\n"
+        f"Concept/Outline: {concept}\n"
         f"{series_info}"
         f"Script Text:\n{script_content}\n\n"
         "Generate high-performing YouTube Shorts SEO metadata for both Part 1 and Part 2 of this split video.\n"
         "Provide your response as a raw JSON object with exactly the following keys (do not include any markdown fences or conversational text outside the JSON):\n"
         "{\n"
-        '  "title": "A single overall video title summarizing the whole story (under 60 characters).",\n'
+        '  "title": "A single overall video title summarizing the whole story (under 60 characters, e.g. phrased as a question or dramatic first-person statement like: AITA for refusing to give up my seat?).",\n'
         '  "part1": {\n'
         '    "title": "A punchy click-worthy title for Part 1 (under 60 characters, teasing Part 2, e.g. ending with Part 1 or Part 1/2).",\n'
-        '    "description": "A description for Part 1 (150-250 words) with a hook and relevant hashtags.",\n'
+        '    "description": "A description for Part 1 (150-250 words) with a dramatic hook, relevant hashtags, and a brief disclosure line: \'This is a fictional story for entertainment purposes.\'.",\n'
         '    "tags": ["10 search terms"]\n'
         '  },\n'
         '  "part2": {\n'
         '    "title": "A title for Part 2 (under 60 characters, indicating continuation, e.g., ending with Part 2 or Part 2/2).",\n'
-        '    "description": "A description for Part 2 (150-250 words) referencing that it is the conclusion of Part 1.",\n'
+        '    "description": "A description for Part 2 (150-250 words) referencing that it is the conclusion of Part 1 and containing the disclosure line: \'This is a fictional story for entertainment purposes.\'.",\n'
         '    "tags": ["10 search terms"]\n'
         '  }\n'
         "}"
@@ -82,13 +83,13 @@ def generate_seo_metadata(date_str: str, force: bool = False) -> dict:
             "title": f"{title_concept} (Shorts Edit)",
             "part1": {
                 "title": f"{title_concept} - Part 1",
-                "description": f"Discover the secret history of {title_concept}! This was a wild failed invention of the 20th century. #history #shorts",
-                "tags": ["history", "failed tech", "shorts", "part1"]
+                "description": f"Is this story wrong? Here is Part 1 of {title_concept}! This is a fictional story for entertainment purposes. #redditstories #aita #shorts",
+                "tags": ["redditstories", "aita", "relationshipdrama", "shorts", "part1"]
             },
             "part2": {
                 "title": f"{title_concept} - Part 2",
-                "description": f"Here is the conclusion and ultimate fate of {title_concept}! Why did it fail? #history #shorts #conclusion",
-                "tags": ["history", "failed tech", "shorts", "part2"]
+                "description": f"Here is the conclusion of {title_concept}! This is a fictional story for entertainment purposes. #redditstories #aita #shorts #conclusion",
+                "tags": ["redditstories", "aita", "relationshipdrama", "shorts", "part2"]
             }
         }
     else:

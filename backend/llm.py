@@ -36,34 +36,34 @@ def generate_text(prompt: str, system_instruction: str | None = None) -> str:
         # Pool of distinct topics for mock series episodes
         MOCK_TOPICS = [
             {
-                "title": "The Strange History of the Dynasphere",
-                "concept": "The Dynasphere was a bizarre cabin-in-a-wheel monowheel vehicle patented in 1930. We explore its futuristic design, how it worked, and why it ultimately rolled into oblivion.",
-                "keywords": ["Dynasphere monowheel", "vintage invention 1930s", "odd retro vehicles", "failed transportation technology"],
-                "visual_style": "vintage archival aesthetic, historical sepia tones, quirky mechanics"
+                "title": "AITA for Refusing to Give Up My Seat to a Pregnant Woman?",
+                "concept": "A narrator refuses to yield their train seat to a pregnant woman because they had a long day at a grueling physical job, resulting in a public scene and family controversy.",
+                "keywords": ["subway train drama", "pregnancy debate", "aita train seat", "family drama"],
+                "visual_style": "bold white text, dramatic shadows, red accent accents"
             },
             {
-                "title": "The Ford Flivver Fail",
-                "concept": "Henry Ford wanted to make an 'everyman's airplane' called the Flivver. We look at its high-profile development, safety challenges, and the crash that shut down the project.",
-                "keywords": ["Ford Flivver airplane", "Henry Ford aviation", "historic small aircraft", "failed flight technology"],
-                "visual_style": "retro hangar look, black and white newsreels, early aviation vibe"
+                "title": "AITA for Canceling My Sister's Wedding Caterer After She Insulted My Wife?",
+                "concept": "The narrator pays for their sister's wedding caterer, but cancels the booking after the sister makes a series of cruel remarks about the narrator's wife, causing a huge wedding fallout.",
+                "keywords": ["wedding drama", "caterer cancellation", "aita wedding conflict", "family feud"],
+                "visual_style": "wedding aesthetic, clean elegant titles, red highlight alerts"
             },
             {
-                "title": "The Apple Pippin Disaster",
-                "concept": "In the mid-90s, Apple tried to conquer the living room with the Pippin game console. We explore how its high price and lack of games led to a swift defeat by PlayStation.",
-                "keywords": ["Apple Pippin console", "retro gaming fail", "Apple 1990s history", "forgotten video game systems"],
-                "visual_style": "90s tech neon, retro game graphics, high-contrast digital"
+                "title": "AITA for Exposing My Fiancé's Secret Family at Our Rehearsal Dinner?",
+                "concept": "The narrator discovers their fiancé has been living a double life with a secret family, and reveals the proof at their rehearsal dinner in front of all their friends and family.",
+                "keywords": ["wedding rehearsal dinner exposure", "double life reveal", "aita wedding drama", "fiancé betrayal"],
+                "visual_style": "rehearsal dinner setting, dark high-contrast text, yellow warn boxes"
             },
             {
-                "title": "The Sinclair C5 Flop",
-                "concept": "The Sinclair C5 was a futuristic electric trike launched in 1985. We examine the massive hype, its dangerous low-profile design, and why consumers refused to drive it.",
-                "keywords": ["Sinclair C5 electric trike", "80s electric vehicles", "Clive Sinclair inventions", "failed urban transport"],
-                "visual_style": "80s commercial aesthetic, bright plastic textures, futuristic retro styling"
+                "title": "AITA for Firing My Mother-in-Law from My Business?",
+                "concept": "The narrator hires their mother-in-law to help with their business, but has to fire her after she repeatedly undermines the narrator's authority and leaks trade secrets to competitors.",
+                "keywords": ["family business conflict", "mother in law drama", "aita firing employee", "workplace family conflict"],
+                "visual_style": "modern office backdrop, sleek bold fonts, orange outline alerts"
             },
             {
-                "title": "The Pawnee Flying Platform",
-                "concept": "The Hiller VZ-1 Pawnee was a flying platform designed for the US military where pilots steered by leaning. We explore its hover mechanics and why it was abandoned.",
-                "keywords": ["Hiller VZ-1 Pawnee", "flying platform hover", "military prototype aircraft", "odd cold war tech"],
-                "visual_style": "military blueprint style, grainy cold war footage, industrial metal tones"
+                "title": "AITA for Telling My Boss to Do His Own Job and Getting Him Fired?",
+                "concept": "A narrator refuses to cover for their lazy manager, telling them to do their own job, and presents a detailed report of the manager's incompetence to HR, leading to the manager's immediate firing.",
+                "keywords": ["workplace revenge", "hr investigation", "aita bad manager", "corporate compliance drama"],
+                "visual_style": "corporate cubicle environment, high-contrast dark mode, green badge borders"
             }
         ]
 
@@ -119,75 +119,104 @@ def generate_text(prompt: str, system_instruction: str | None = None) -> str:
             import json
             return json.dumps(selected_topic, indent=2, ensure_ascii=False)
         
-        # Step 04: Fact Checker
-        elif "compare the following script against the research report" in prompt_lower or "fact-check" in prompt_lower:
-            display_title = title or "The Dynasphere"
+        # Step 04: Story Consistency Checker
+        elif "compare the following script against the research report" in prompt_lower or "compare the following script against the story outline" in prompt_lower or "consistency" in prompt_lower or "fact-check" in prompt_lower:
             return f"""[
               {{
-                "claim": "The prototype is named the {display_title}.",
+                "claim": "The narrator is a bricklayer who was physically exhausted after a 12-hour shift.",
                 "status": "VERIFIED",
-                "explanation": "Verified from research records."
+                "explanation": "Consistent with character profile and timeline in the story outline."
               }},
               {{
-                "claim": "It was highly successful in all early tests.",
+                "claim": "The narrator's partner supported them from the beginning.",
                 "status": "FLAGGED",
-                "explanation": "Exaggeration: documented tests showed stability and control issues during operation."
+                "explanation": "Contradiction: the script states the partner was horrified, told them to apologize, and stopped returning texts."
               }}
             ]"""
         # Step 03: Script Writer
-        elif "draft a complete youtube script" in prompt_lower or "script to revise" in prompt_lower:
-            display_title = title or "The Dynasphere"
-            return f"""[HOOK]
-[SCENE: Vintage footage matching the style of {display_title}]
-Have you ever wanted to learn about {display_title}? In this episode, we explore the fascinating history of this forgotten invention.
+        elif "draft a complete youtube script" in prompt_lower or "script to revise" in prompt_lower or "first-person" in prompt_lower:
+            display_title = title or "AITA for Refusing to Give Up My Seat to a Pregnant Woman?"
+            if "seat" in display_title.lower():
+                return f"""[HOOK]
+[SCENE: Gameplay showing fast parkour movements]
+AITA for refusing to give up my seat to a pregnant woman? So this happened yesterday on my commute home, and now my family is calling me a monster.
 
 [BODY]
-[SCENE: Historical blueprints and blueprints showing details of {display_title}]
-Meet {display_title}. Designed to revolutionize its field, it was highly anticipated by its creators.
+[SCENE: Fast-paced subway train layout footage]
+I work as a commercial bricklayer. It is physical labor, and yesterday I finished a twelve-hour shift. My back was throbbing, and my feet were blistered. When I boarded the train, I managed to grab one of the few open seats. I closed my eyes, just wanting to rest.
 
-[SCENE: Old footage demonstrating {display_title} in action]
-People were extremely optimistic, claiming it could change the future of technology. But in reality, it had some major flaws.
+[SCENE: Crowd of people talking and gesturing]
+Three stops later, a woman who was visibly pregnant boarded the train. She walked straight over to me, stood right in front of my face, and cleared her throat loudly. She said, 'Excuse me, I need that seat.'
 
-[SCENE: Close up of the mechanical details and problematic features]
-Add to that the fact that it was difficult to steer, expensive to manufacture, and prone to breaking down. It's easy to see why it rolled straight into the history books.
+[SCENE: Close-up of narrator refusing]
+I opened my eyes, looked around, and saw other young, healthy-looking people in seats. I politely said, 'I'm sorry, but I just finished a twelve-hour shift of heavy physical labor and I can barely stand.'
+
+[SCENE: Angry passengers shouting and recording]
+She became furious, shouting that I was an entitled jerk with no respect. Another passenger pulled out a phone and started filming me, telling me to get up or they'd put the video online. I refused to budge.
+
 [SPLIT POINT]
-[SCENE: Summary collage of the invention's legacy]
-Ultimately, {display_title} stands as a testament to human ingenuity and the trials of innovation.
+[SCENE: Viral video screenshot overlay]
+By the time I got home, the video was already trending on social media. My partner saw it and was horrified. They told me I brought shame on them and that I should pack my things if I didn't publicly apologize to the woman.
+
+[SCENE: Revealing train footage angles]
+But here is the twist: a commuter who was sitting next to me posted another angle. It clearly showed that the pregnant woman had walked past three empty priority seats right behind her just to target me. Public opinion has split, but my partner still hasn't returned my texts.
 
 [CTA/OUTRO]
-[SCENE: Modern graphic showing subscribe button]
-What failed invention should we cover next? Let us know in the comments, and don't forget to subscribe for more forgotten history.
+[SCENE: Channel logo and subscribe button animation]
+So, AITA? Let me know what you think in the comments, and don't forget to subscribe for more Reddit confessions.
+"""
+            else:
+                return f"""[HOOK]
+[SCENE: Gameplay showing fast parkour movements]
+Here is the story about {display_title}. So this happened recently, and it completely ruined my week.
+
+[BODY]
+[SCENE: High-intensity gameplay clip]
+It all started when I was dealing with a very difficult situation. Everyone thought I was in the wrong, but they didn't know the full story.
+
+[SCENE: Subway surfers gameplay transition]
+I tried to explain my side, but nobody wanted to listen. Things escalated very quickly, and before I knew it, it was a total disaster.
+
+[SPLIT POINT]
+[SCENE: Intense gameplay speedrun]
+That's when the big twist happened. I discovered something that changed everything, and I had to make a choice.
+
+[SCENE: Gameplay completion showing high score]
+Ultimately, I stood my ground, and the truth came out. It was a tough lesson, but I don't regret it.
+
+[CTA/OUTRO]
+[SCENE: Channel logo and subscribe button animation]
+So, what do you think? Was I the jerk? Tell me in the comments and subscribe for more stories!
 """
 
-        # Step 02: Research Agent
-        elif "generate a detailed research report" in prompt_lower:
-            display_title = title or "The Dynasphere"
-            return f"""# Research Report: {display_title}
+        # Step 02: Story Outline / Research Agent
+        elif "generate a detailed research report" in prompt_lower or "outline a detailed fictional story" in prompt_lower:
+            display_title = title or "AITA for Refusing to Give Up My Seat to a Pregnant Woman?"
+            return f"""# Story Outline: {display_title}
             
-## Background
-- The {display_title} was a pioneering historical concept developed in the 20th century.
-- Developed by ambitious inventors aiming to simplify transit and create the ultimate vehicle.
+## Character Profiles
+- Narrator: 28-year-old construction worker, exhausted from a 12-hour shift.
+- Pregnant Woman: Around 8 months pregnant, entered the train demanding a seat.
+- Passengers: Bystanders who filmed the confrontation and made comments.
 
-## Technical Specifications & Design
-- Features a unique mechanics assembly with custom power drives and steering dynamics.
-- Powered by a compact motor and built using experimental industrial materials of the era.
+## Story Beats & Structure
+- Setup: Narrator boards a crowded train after a grueling day and finds a seat.
+- Conflict: A pregnant woman boards, looks at the narrator, and loudly demands they stand up.
+- Escalation: Narrator refuses, citing physical exhaustion. A passenger records the scene, calling the narrator selfish.
+- Cliffhanger: The video goes viral online, and the narrator's partner says they should apologize or move out. [SPLIT POINT]
+- Twist/Resolution: The narrator holds their ground. It is revealed that the woman had other seating options nearby, and public opinion shifts back.
 
-## Claims & Performance
-- Initial testing showed great promise, with inventors claiming it was highly efficient and fast.
-- Documented testing revealed significant engineering limitations during operation.
-
-## Why it Failed
-- Main causes of abandonment included steering issues, safety concerns, and high production costs.
-- The project was eventually shelved, becoming a classic example of fascinating but failed technology.
+## Emotional Arc & Pacing
+- Starts with exhaustion, escalates to high tension and public shame, and resolves with validation. Keep dialogue sharp.
 """
 
         # Step 10: SEO Generator
         elif "seo" in prompt_lower or "tags" in prompt_lower:
-            display_title = title or "The Dynasphere"
+            display_title = title or "AITA for Refusing to Give Up My Seat to a Pregnant Woman?"
             return f"""{{
-              "title": "The Bizarre Story of {display_title}: A Forgotten Innovation",
-              "description": "Step back in time to explore the fascinating history of {display_title}. Learn how it worked, the high hopes, and why it ultimately failed!",
-              "tags": ["{display_title}", "failed technology", "forgotten inventions", "retro tech", "history of transport"]
+              "title": "AITA for Refusing to Give Up My Seat? | Shorts",
+              "description": "Was I wrong for holding my ground on the commute? This is a fictional story for entertainment purposes. #redditstories #aita #shorts",
+              "tags": ["redditstories", "aita", "relationshipdrama", "shorts"]
             }}"""
         
         else:

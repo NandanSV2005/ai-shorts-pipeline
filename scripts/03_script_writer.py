@@ -51,28 +51,24 @@ def run_script_writer(date_str: str, force: bool = False) -> str:
     visual_style = topic_data.get("visual_style", "vintage")
 
     system_instruction = (
-        "You are an elite YouTube Documentarian and Scriptwriter. Your style is engaging, pacing is key, "
-        "and you hook the viewer in the first 5 seconds. You intersperse narration with bracketed visual cues "
-        "on separate lines (e.g. [SCENE: Vintage black and white footage of the invention moving]). "
-        "Keep the narration flowing, conversational, and split into clear paragraphs. Avoid using bullet points "
-        "in the narrator's dialogue."
+        "You are an elite creative writer and storyteller. Your style is engaging, conversational, and "
+        "perfectly emulates first-person Reddit-post confessions (like AITA, relationship drama, or workplace revenge). "
+        "You hook the viewer in the first 3 seconds, intersperse narration with bracketed gameplay visual cues "
+        "on separate lines (e.g. [SCENE: Gameplay showing fast parkour movements]), and maintain dramatic tension."
     )
 
     prompt = (
-        f"Topic Title: {title}\n"
+        f"Story Premise: {title}\n"
         f"Visual Style: {visual_style}\n\n"
-        f"Research Report:\n{research_content}\n\n"
-        "Draft a complete YouTube script under 4 minutes. Follow these guidelines exactly:\n"
-        "1. Write the script with explicit sections: [HOOK], [BODY], and [CTA/OUTRO].\n"
-        "2. Place visual scene descriptions inside brackets on their own line (e.g. `[SCENE: description of visuals]`).\n"
-        "3. Every paragraph of narration MUST be preceded by a matching [SCENE: ...] directive specifying what to show on screen.\n"
-        "4. The narrator text must be conversational and read naturally. Do not write narrator speech as list items.\n"
-        "5. TARGET DURATION AND WORD COUNT: The spoken narration MUST be under 550 words total (~3.5 minutes total narration).\n"
-        "6. COMPLETE STORY PATH: The script must be a complete, self-contained story with a clear hook, a building middle section, "
-        "and a satisfying resolution/ending. Do not cut off mid-narrative. If the topic is broad, narrow the scope of the story "
-        "rather than compressing it into a rushed summary.\n"
-        "7. SHORTS SPLIT POINT: Place a single `[SPLIT POINT]` directive on its own line exactly where the story should split into "
-        "Part 1 and Part 2. This must be a natural cliffhanger cut (usually at the end of the build section, right before the resolution)."
+        f"Story Outline/Plan:\n{research_content}\n\n"
+        "Draft a complete first-person YouTube script under 4 minutes. Follow these guidelines exactly:\n"
+        "1. Style: Write in the first-person, confessional Reddit-post narration style (e.g. 'My fiancé and I were supposed to get married in three weeks, until I found out...', 'So this happened last month and I\'m still not over it...'). The tone must sound like someone reading their own real Reddit post aloud.\n"
+        "2. Hook: Start with a natural opening hook in the first 3-5 seconds (e.g. starting mid-action or with the most shocking line before giving context).\n"
+        "3. Structure: Write the script with explicit section markers: [HOOK], [BODY], and [CTA/OUTRO].\n"
+        "4. Visuals: Place visual scene descriptions inside brackets on their own line (e.g. `[SCENE: Description of gameplay visuals matching the intensity of the scene]`). Every paragraph of narration MUST be preceded by a matching [SCENE: ...] directive.\n"
+        "5. Word Count: The spoken narration MUST be under 550 words total to keep the video under 4 minutes.\n"
+        "6. Complete Story: The script must be a complete, self-contained story with a clear hook, escalating conflict, and satisfying resolution.\n"
+        "7. Cliffhanger & Split Point: Place a single `[SPLIT POINT]` directive on its own line exactly where the story should split into Part 1 and Part 2. This must be a genuine, dramatic cliffhanger right before the twist or final resolution."
     )
 
     print(f"[03 Script Writer] Writing script for: '{title}'...")
