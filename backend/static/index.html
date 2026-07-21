@@ -48,6 +48,19 @@
                         <label for="generate-episode">Episode (Optional)</label>
                         <input type="number" id="generate-episode" placeholder="e.g. 1" min="1">
                     </div>
+                    <div class="form-row">
+                        <label>Video Mode</label>
+                        <div class="radio-group" style="display: flex; gap: 16px; margin: 4px 0;">
+                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: none; font-size: 13px; font-weight: normal; color: var(--text-primary);">
+                                <input type="radio" name="generate-parts" value="1" checked style="cursor: pointer;">
+                                Single video
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: none; font-size: 13px; font-weight: normal; color: var(--text-primary);">
+                                <input type="radio" name="generate-parts" value="2" style="cursor: pointer;">
+                                Split into Part 1 / Part 2
+                            </label>
+                        </div>
+                    </div>
                     <div class="form-row checkbox-row">
                         <input type="checkbox" id="generate-force">
                         <label for="generate-force">Force overwrite cache</label>
@@ -108,6 +121,7 @@
                         <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                             <span id="detail-date" class="date-badge">YYYY-MM-DD</span>
                             <span id="detail-series-badge" class="series-badge hidden"></span>
+                            <span id="detail-parts-badge" class="parts-badge">1 Part</span>
                         </div>
                         <h1 id="detail-title">Video Title Placeholder</h1>
                     </div>
@@ -179,9 +193,9 @@
 
                                 <!-- Tab: SEO -->
                                 <div id="tab-seo" class="tab-content">
-                                    <div class="seo-grid">
+                                    <div class="seo-grid" id="seo-grid">
                                         <!-- Part 1 Short -->
-                                        <div class="seo-part-card">
+                                        <div class="seo-part-card" id="seo-card-part1">
                                             <h4><i class="fa-solid fa-scissors"></i> Part 1 Short</h4>
                                             <div class="seo-field">
                                                 <label>YouTube Title</label>
@@ -198,7 +212,7 @@
                                         </div>
                                         
                                         <!-- Part 2 Short -->
-                                        <div class="seo-part-card">
+                                        <div class="seo-part-card" id="seo-card-part2">
                                             <h4><i class="fa-solid fa-scissors"></i> Part 2 Short</h4>
                                             <div class="seo-field">
                                                 <label>YouTube Title</label>

@@ -183,6 +183,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const series = generateSeries.value ? generateSeries.value.trim() : null;
         const episodeVal = generateEpisode.value ? generateEpisode.value.trim() : null;
         const episode = episodeVal ? parseInt(episodeVal, 10) : null;
+        
+        const partsVal = document.querySelector('input[name="generate-parts"]:checked').value;
+        const parts = parseInt(partsVal, 10);
 
         if (!dateStr) {
             alert("Please select a date first.");
@@ -202,7 +205,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ date_str: dateStr, force, topic, series, episode })
+                body: JSON.stringify({ date_str: dateStr, force, topic, series, episode, parts })
             });
 
             if (!response.ok) {
@@ -358,10 +361,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 ? `<span class="series-badge" title="${run.series}${run.episode !== null ? ' Ep. ' + run.episode : ''}"><i class="fa-solid fa-layer-group"></i> ${run.series}${run.episode !== null ? ' Ep. ' + run.episode : ''}</span>`
                 : "";
 
+            const partsVal = run.parts || 1;
+            const partsBadge = `<span class="parts-badge parts-${partsVal}"><i class="fa-solid fa-film"></i> ${partsVal} Part${partsVal > 1 ? 's' : ''}</span>`;
+
             card.innerHTML = `
                 <div class="run-card-header">
                     <span class="run-card-date">${run.date}</span>
-                    ${seriesBadge}
+                    <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap;">
+                        ${seriesBadge}
+                        ${partsBadge}
+                    </div>
                     <div class="status-dot-container">
                         <span class="status-dot ${run.approval_status}"></span>
                         <span style="font-size: 11px; text-transform: capitalize; color: var(--text-secondary)">${run.approval_status}</span>
@@ -403,6 +412,13 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 detailSeriesBadge.classList.add("hidden");
             }
+        }
+
+        const detailPartsBadge = document.getElementById("detail-parts-badge");
+        if (detailPartsBadge) {
+            const pVal = detail.parts || 1;
+            detailPartsBadge.innerHTML = `<i class="fa-solid fa-film"></i> ${pVal} Part${pVal > 1 ? 's' : ''}`;
+            detailPartsBadge.className = `parts-badge parts-${pVal}`;
         }
 
         // Render Video Player
@@ -488,26 +504,58 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
+        const seoGrid = document.getElementById("seo-grid");
+        const seoCardPart2 = document.getElementById("seo-card-part2");
+        const seoCardPart1Header = document.querySelector("#seo-card-part1 h4");
+
         if (detail.seo) {
-            if (detail.seo.part1) {
-                seoTitlePart1.textContent = detail.seo.part1.title || "No Title.";
-                seoDescPart1.textContent = detail.seo.part1.description || "No Description.";
-                renderTagsHelper(seoTagsPart1, detail.seo.part1.tags);
-                
-                seoTitlePart2.textContent = detail.seo.part2.title || "No Title.";
-                seoDescPart2.textContent = detail.seo.part2.description || "No Description.";
-                renderTagsHelper(seoTagsPart2, detail.seo.part2.tags);
+            const pVal = detail.parts || 1;
+            if (pVal === 2) {
+                if (seoGrid) seoGrid.classList.remove("single-part");
+                if (seoCardPart2) seoCardPart2.classList.remove("hidden");
+                if (seoCardPart1Header) seoCardPart1Header.innerHTML = '<i class="fa-solid fa-scissors"></i> Part 1 Short';
+
+                if (detail.seo.part1) {
+                    seoTitlePart1.textContent = detail.seo.part1.title || "No Title.";
+                    seoDescPart1.textContent = detail.seo.part1.description || "No Description.";
+                    renderTagsHelper(seoTagsPart1, detail.seo.part1.tags);
+                    
+                    seoTitlePart2.textContent = detail.seo.part2.title || "No Title.";
+                    seoDescPart2.textContent = detail.seo.part2.description || "No Description.";
+                    renderTagsHelper(seoTagsPart2, detail.seo.part2.tags);
+                } else {
+                    // Fallback for older runs that might have parts=2 but older schema
+                    seoTitlePart1.textContent = detail.seo.title || "No Title.";
+                    seoDescPart1.textContent = detail.seo.description || "No Description.";
+                    renderTagsHelper(seoTagsPart1, detail.seo.tags);
+                    
+                    seoTitlePart2.textContent = "N/A";
+                    seoDescPart2.textContent = "N/A";
+                    seoTagsPart2.innerHTML = `<span style="color: var(--text-muted); font-size: 13px;">No split parts in this run.</span>`;
+                }
             } else {
-                // Fallback for older non-split runs
-                seoTitlePart1.textContent = detail.seo.title || "No Title.";
-                seoDescPart1.textContent = detail.seo.description || "No Description.";
-                renderTagsHelper(seoTagsPart1, detail.seo.tags);
-                
-                seoTitlePart2.textContent = "N/A (Older run)";
+                if (seoGrid) seoGrid.classList.add("single-part");
+                if (seoCardPart2) seoCardPart2.classList.add("hidden");
+                if (seoCardPart1Header) seoCardPart1Header.innerHTML = '<i class="fa-solid fa-film"></i> Video SEO';
+
+                // Single part SEO display
+                const mainTitle = detail.seo.title || (detail.seo.part1 ? detail.seo.part1.title : "No Title.");
+                const mainDesc = detail.seo.description || (detail.seo.part1 ? detail.seo.part1.description : "No Description.");
+                const mainTags = detail.seo.tags || (detail.seo.part1 ? detail.seo.part1.tags : []);
+
+                seoTitlePart1.textContent = mainTitle;
+                seoDescPart1.textContent = mainDesc;
+                renderTagsHelper(seoTagsPart1, mainTags);
+
+                seoTitlePart2.textContent = "N/A";
                 seoDescPart2.textContent = "N/A";
-                seoTagsPart2.innerHTML = `<span style="color: var(--text-muted); font-size: 13px;">No split parts in this run.</span>`;
+                seoTagsPart2.innerHTML = ``;
             }
         } else {
+            if (seoGrid) seoGrid.classList.remove("single-part");
+            if (seoCardPart2) seoCardPart2.classList.remove("hidden");
+            if (seoCardPart1Header) seoCardPart1Header.innerHTML = '<i class="fa-solid fa-scissors"></i> Part 1 Short';
+
             seoTitlePart1.textContent = "No SEO Title.";
             seoDescPart1.textContent = "No SEO Description.";
             seoTagsPart1.innerHTML = "";

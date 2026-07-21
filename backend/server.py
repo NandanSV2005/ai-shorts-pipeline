@@ -90,7 +90,8 @@ def list_runs():
                     "has_script": has_script,
                     "warnings_count": warnings_count,
                     "series": metadata.get("series"),
-                    "episode": metadata.get("episode")
+                    "episode": metadata.get("episode"),
+                    "parts": metadata.get("parts", 1)
                 }
                 
     # 2. Check DB runs table
@@ -133,7 +134,8 @@ def list_runs():
                         "has_script": False,
                         "warnings_count": warnings_count,
                         "series": series_val,
-                        "episode": episode_val
+                        "episode": episode_val,
+                        "parts": db_meta.get("parts", 1)
                     }
                 else:
                     if "approval_status" not in runs_map[date_str] or runs_map[date_str]["approval_status"] == "unreviewed":
@@ -229,7 +231,8 @@ def get_run_detail(date_str: str):
         "seo": metadata.get("seo", {}),
         "fact_check": metadata.get("fact_check", []),
         "series": metadata.get("series"),
-        "episode": metadata.get("episode")
+        "episode": metadata.get("episode"),
+        "parts": metadata.get("parts", 1)
     }
 
 @app.post("/api/runs/{date_str}/status")
@@ -349,6 +352,7 @@ class GenerateRequest(BaseModel):
     topic: str | None = None
     series: str | None = None
     episode: int | None = None
+    parts: int = 1
 
 @app.post("/api/generate")
 def start_generation(req: GenerateRequest):
@@ -385,6 +389,8 @@ def start_generation(req: GenerateRequest):
         cmd.extend(["--series", req.series])
     if req.episode is not None:
         cmd.extend(["--episode", str(req.episode)])
+    if req.parts is not None:
+        cmd.extend(["--parts", str(req.parts)])
 
     # Open log file
     LOGS_DIR.mkdir(parents=True, exist_ok=True)

@@ -33,6 +33,20 @@ def generate_text(prompt: str, system_instruction: str | None = None) -> str:
                     break
             return date_str
 
+        # Helper to get parts count from metadata
+        def get_parts_count() -> int:
+            try:
+                from backend.config import OUTPUTS_DIR
+                import json
+                date_str = get_active_date()
+                metadata_file = OUTPUTS_DIR / date_str / "metadata.json"
+                if metadata_file.exists():
+                    with open(metadata_file, "r", encoding="utf-8") as f:
+                        return json.load(f).get("parts", 1)
+            except Exception:
+                pass
+            return 1
+
         # Pool of distinct topics for mock series episodes
         MOCK_TOPICS = [
             {
@@ -118,7 +132,6 @@ def generate_text(prompt: str, system_instruction: str | None = None) -> str:
             selected_topic = MOCK_TOPICS[topic_index]
             import json
             return json.dumps(selected_topic, indent=2, ensure_ascii=False)
-        
         # Step 04: Story Consistency Checker
         elif "compare the following script against the research report" in prompt_lower or "compare the following script against the story outline" in prompt_lower or "consistency" in prompt_lower or "fact-check" in prompt_lower:
             return f"""[
@@ -135,9 +148,10 @@ def generate_text(prompt: str, system_instruction: str | None = None) -> str:
             ]"""
         # Step 03: Script Writer
         elif "draft a complete youtube script" in prompt_lower or "script to revise" in prompt_lower or "first-person" in prompt_lower:
+            parts_count = get_parts_count()
             display_title = title or "AITA for Refusing to Give Up My Seat to a Pregnant Woman?"
             if "seat" in display_title.lower():
-                return f"""[HOOK]
+                script_text = f"""[HOOK]
 [SCENE: Gameplay showing fast parkour movements]
 AITA for refusing to give up my seat to a pregnant woman? So this happened yesterday on my commute home, and now my family is calling me a monster.
 
@@ -152,8 +166,7 @@ Three stops later, a woman who was visibly pregnant boarded the train. She walke
 I opened my eyes, looked around, and saw other young, healthy-looking people in seats. I politely said, 'I'm sorry, but I just finished a twelve-hour shift of heavy physical labor and I can barely stand.'
 
 [SCENE: Angry passengers shouting and recording]
-She became furious, shouting that I was an entitled jerk with no respect. Another passenger pulled out a phone and started filming me, telling me to get up or they'd put the video online. I refused to budge.
-
+I refused to budge. Another passenger pulled out a phone and started filming me, telling me to get up or they'd put the video online.
 [SPLIT POINT]
 [SCENE: Viral video screenshot overlay]
 By the time I got home, the video was already trending on social media. My partner saw it and was horrified. They told me I brought shame on them and that I should pack my things if I didn't publicly apologize to the woman.
@@ -166,7 +179,7 @@ But here is the twist: a commuter who was sitting next to me posted another angl
 So, AITA? Let me know what you think in the comments, and don't forget to subscribe for more Reddit confessions.
 """
             else:
-                return f"""[HOOK]
+                script_text = f"""[HOOK]
 [SCENE: Gameplay showing fast parkour movements]
 Here is the story about {display_title}. So this happened recently, and it completely ruined my week.
 
@@ -176,7 +189,6 @@ It all started when I was dealing with a very difficult situation. Everyone thou
 
 [SCENE: Subway surfers gameplay transition]
 I tried to explain my side, but nobody wanted to listen. Things escalated very quickly, and before I knew it, it was a total disaster.
-
 [SPLIT POINT]
 [SCENE: Intense gameplay speedrun]
 That's when the big twist happened. I discovered something that changed everything, and I had to make a choice.
@@ -188,6 +200,9 @@ Ultimately, I stood my ground, and the truth came out. It was a tough lesson, bu
 [SCENE: Channel logo and subscribe button animation]
 So, what do you think? Was I the jerk? Tell me in the comments and subscribe for more stories!
 """
+            if parts_count == 1:
+                script_text = script_text.replace("[SPLIT POINT]\n", "").replace("[SPLIT POINT]", "")
+            return script_text
 
         # Step 02: Story Outline / Research Agent
         elif "generate a detailed research report" in prompt_lower or "outline a detailed fictional story" in prompt_lower:
@@ -212,12 +227,28 @@ So, what do you think? Was I the jerk? Tell me in the comments and subscribe for
 
         # Step 10: SEO Generator
         elif "seo" in prompt_lower or "tags" in prompt_lower:
+            parts_count = get_parts_count()
             display_title = title or "AITA for Refusing to Give Up My Seat to a Pregnant Woman?"
-            return f"""{{
-              "title": "AITA for Refusing to Give Up My Seat? | Shorts",
-              "description": "Was I wrong for holding my ground on the commute? This is a fictional story for entertainment purposes. #redditstories #aita #shorts",
-              "tags": ["redditstories", "aita", "relationshipdrama", "shorts"]
-            }}"""
+            if parts_count == 2:
+                return f"""{{
+                  "title": "{display_title} | Shorts",
+                  "part1": {{
+                    "title": "{display_title} - Part 1",
+                    "description": "Was I wrong for holding my ground on the commute? This is a fictional story for entertainment purposes. #redditstories #aita #shorts",
+                    "tags": ["redditstories", "aita", "relationshipdrama", "shorts"]
+                  }},
+                  "part2": {{
+                    "title": "{display_title} - Part 2",
+                    "description": "Here is Part 2 of this crazy story. This is a fictional story for entertainment purposes. #redditstories #aita #shorts",
+                    "tags": ["redditstories", "aita", "relationshipdrama", "shorts"]
+                  }}
+                }}"""
+            else:
+                return f"""{{
+                  "title": "{display_title} | Shorts",
+                  "description": "Was I wrong for holding my ground on the commute? This is a fictional story for entertainment purposes. #redditstories #aita #shorts",
+                  "tags": ["redditstories", "aita", "relationshipdrama", "shorts"]
+                }}"""
         
         else:
             return "This is a generic mock response from the LLM pipeline."

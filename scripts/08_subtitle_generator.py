@@ -4,6 +4,7 @@ import argparse
 import subprocess
 from datetime import datetime
 from pathlib import Path
+import json
 
 # Add project root to sys.path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
@@ -460,11 +461,24 @@ def generate_subtitles_and_render(date_str: str, force: bool = False) -> None:
             import shutil
             shutil.copy(raw_video, final_video)
 
-    # 3. Split final video into two parts for YouTube Shorts
-    try:
-        split_video_into_parts(output_dir, final_video, script_file, srt_file, ffmpeg_bin)
-    except Exception as e:
-        print(f"[08 Subtitles] [ERROR] Failed to split video: {e}")
+    # 3. Split final video into two parts for YouTube Shorts if requested
+    output_dir_path = get_output_dir(date_str)
+    metadata_file = output_dir_path / "metadata.json"
+    parts_count = 1
+    if metadata_file.exists():
+        try:
+            with open(metadata_file, "r", encoding="utf-8") as f:
+                parts_count = json.load(f).get("parts", 1)
+        except Exception:
+            pass
+
+    if parts_count == 2:
+        try:
+            split_video_into_parts(output_dir_path, final_video, script_file, srt_file, ffmpeg_bin)
+        except Exception as e:
+            print(f"[08 Subtitles] [ERROR] Failed to split video: {e}")
+    else:
+        print("[08 Subtitles] 'parts' configuration is set to 1. Skipping video split.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Transcribe audio and burn subtitles into video.")

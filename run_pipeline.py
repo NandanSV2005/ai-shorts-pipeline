@@ -114,7 +114,7 @@ def send_notification(date_str: str, status: str, error_msg: str | None = None) 
         print(msg_content)
         print("----------------------------------------------------------------------")
 
-def execute_pipeline(date_str: str, force: bool = False, topic: str | None = None, series: str | None = None, episode: int | None = None) -> None:
+def execute_pipeline(date_str: str, force: bool = False, topic: str | None = None, series: str | None = None, episode: int | None = None, parts: int = 1) -> None:
     print(f"Starting YouTube Automation Pipeline Run for: {date_str}")
     
     output_dir = get_output_dir(date_str)
@@ -142,10 +142,13 @@ def execute_pipeline(date_str: str, force: bool = False, topic: str | None = Non
                     if episode is not None and old_meta.get("episode") != episode:
                         print(f"[Orchestrator] Detected episode change from '{old_meta.get('episode')}' to '{episode}'. Auto-forcing regeneration.")
                         force = True
+                    if old_meta.get("parts", 1) != parts:
+                        print(f"[Orchestrator] Detected parts configuration change from '{old_meta.get('parts', 1)}' to '{parts}'. Auto-forcing regeneration.")
+                        force = True
             except Exception:
                 pass
 
-    # Pre-initialize metadata with series & episode info so subsequent steps can load them
+    # Pre-initialize metadata with series, episode & parts info so subsequent steps can load them
     metadata_dict = {}
     if metadata_file.exists():
         try:
@@ -156,6 +159,7 @@ def execute_pipeline(date_str: str, force: bool = False, topic: str | None = Non
             
     metadata_dict["series"] = series if series else None
     metadata_dict["episode"] = episode if episode is not None else None
+    metadata_dict["parts"] = parts
     
     with open(metadata_file, "w", encoding="utf-8") as f:
         json.dump(metadata_dict, f, indent=2, ensure_ascii=False)
@@ -249,6 +253,13 @@ if __name__ == "__main__":
         default=None,
         help="Optional episode number within the series.",
     )
+    parser.add_argument(
+        "--parts",
+        type=int,
+        choices=[1, 2],
+        default=1,
+        help="Number of parts to generate/render (1 for single video, 2 for split).",
+    )
     args = parser.parse_args()
 
-    execute_pipeline(args.date, args.force, args.topic, args.series, args.episode)
+    execute_pipeline(args.date, args.force, args.topic, args.series, args.episode, args.parts)
