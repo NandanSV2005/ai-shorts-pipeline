@@ -411,12 +411,15 @@ def generate_subtitles_and_render(date_str: str, force: bool = False) -> None:
         raise FileNotFoundError(f"Missing required input files for step 08 on date {date_str}.")
 
     if final_video.exists() and srt_file.exists() and not force:
-        print(f"[08 Subtitles] Subtitled video already exists at {final_video}. Skipping.")
-        return
+        if raw_video.stat().st_mtime > final_video.stat().st_mtime or voice_file.stat().st_mtime > final_video.stat().st_mtime or script_file.stat().st_mtime > final_video.stat().st_mtime:
+            print(f"[08 Subtitles] Inputs updated after video.mp4 was created. Forcing subtitle re-burn.")
+        else:
+            print(f"[08 Subtitles] Subtitled video already exists at {final_video} and is up to date. Skipping.")
+            return
 
     # 1. Transcribe audio to generate subtitles.srt
     subtitles_raw_file = output_dir / "subtitles_raw.srt"
-    if subtitles_raw_file.exists():
+    if subtitles_raw_file.exists() and (voice_file.stat().st_mtime <= subtitles_raw_file.stat().st_mtime and script_file.stat().st_mtime <= subtitles_raw_file.stat().st_mtime):
         print(f"[08 Subtitles] Using raw subtitles generated during voice synthesis...")
         import shutil
         shutil.copy(subtitles_raw_file, srt_file)

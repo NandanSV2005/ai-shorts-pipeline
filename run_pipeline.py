@@ -156,7 +156,7 @@ def execute_pipeline(date_str: str, force: bool = False, topic: str | None = Non
         files_to_clean = [
             "research.md", "script.txt", "subtitles.srt", "subtitles_raw.srt",
             "video.mp4", "video_raw.mp4", "video_part1.mp4", "video_part2.mp4",
-            "thumbnail.png", "scenes.json"
+            "thumbnail.png", "scenes.json", "voice.mp3"
         ]
         for f_name in files_to_clean:
             f_path = output_dir / f_name

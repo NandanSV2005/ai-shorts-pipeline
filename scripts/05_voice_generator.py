@@ -14,6 +14,8 @@ from backend.config import (
     get_output_dir,
     TTS_PROVIDER,
     EDGE_TTS_VOICE,
+    TTS_RATE,
+    TTS_SPEED,
     OPENAI_API_KEY,
     ELEVENLABS_API_KEY,
     ELEVENLABS_VOICE_ID,
@@ -43,9 +45,9 @@ def extract_narration(script_path: Path) -> str:
 def run_mock_tts(text: str, output_file: Path) -> None:
     """Generates a low-volume pulsed beep MP3 file with duration proportional to the text word count."""
     word_count = len(text.split())
-    # Average speech rate is ~150 words per minute (2.5 words per second)
-    duration = max(5, int(word_count / 2.5))
-    print(f"[05 Voice Generator] [MOCK] Generating a {duration}-second mock beep MP3 placeholder...")
+    # Average speech rate at 1.5x speed is ~3.75 words per second (225 words per minute)
+    duration = max(3, int(word_count / 3.75))
+    print(f"[05 Voice Generator] [MOCK] Generating a {duration}-second mock beep MP3 placeholder (Rate: {TTS_RATE}, Speed: {TTS_SPEED}x)...")
     
     # Run FFmpeg command to generate pulsed beep audio
     cmd = [
@@ -66,9 +68,9 @@ def run_mock_tts(text: str, output_file: Path) -> None:
 
 async def run_edge_tts(text: str, output_file: Path, srt_file: Path) -> None:
     """Calls Edge TTS API to generate voiceover and timing subtitles."""
-    print(f"[05 Voice Generator] Using Edge-TTS (Voice: {EDGE_TTS_VOICE})...")
+    print(f"[05 Voice Generator] Using Edge-TTS (Voice: {EDGE_TTS_VOICE}, Rate: {TTS_RATE})...")
     import edge_tts
-    communicate = edge_tts.Communicate(text, EDGE_TTS_VOICE, boundary="WordBoundary")
+    communicate = edge_tts.Communicate(text, EDGE_TTS_VOICE, rate=TTS_RATE, boundary="WordBoundary")
     submaker = edge_tts.SubMaker()
     with open(output_file, "wb") as fp:
         async for chunk in communicate.stream():
@@ -84,7 +86,7 @@ async def run_edge_tts(text: str, output_file: Path, srt_file: Path) -> None:
 
 def run_openai_tts(text: str, output_file: Path) -> None:
     """Calls OpenAI API to generate voiceover."""
-    print("[05 Voice Generator] Using OpenAI TTS...")
+    print(f"[05 Voice Generator] Using OpenAI TTS (Speed: {TTS_SPEED}x)...")
     if not OPENAI_API_KEY:
         raise ValueError("OPENAI_API_KEY is not configured in .env")
         
@@ -93,7 +95,8 @@ def run_openai_tts(text: str, output_file: Path) -> None:
     response = client.audio.speech.create(
         model="tts-1",
         voice="alloy",
-        input=text
+        input=text,
+        speed=TTS_SPEED
     )
     response.write_to_file(str(output_file))
 
@@ -171,8 +174,11 @@ def generate_voiceover(date_str: str, force: bool = False) -> None:
         raise FileNotFoundError(f"Script file not found for {date_str}. Run 03_script_writer.py first.")
 
     if voice_file.exists() and not force:
-        print(f"[05 Voice Generator] Voice file already exists at {voice_file}. Skipping.")
-        return
+        if script_file.stat().st_mtime > voice_file.stat().st_mtime:
+            print(f"[05 Voice Generator] script.txt was updated after voice.mp3 was created. Forcing voiceover regeneration.")
+        else:
+            print(f"[05 Voice Generator] Voice file already exists at {voice_file} and is up to date. Skipping.")
+            return
 
     text = extract_narration(script_file)
     if not text:

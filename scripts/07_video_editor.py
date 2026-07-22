@@ -43,8 +43,11 @@ def build_raw_video(date_str: str, force: bool = False) -> None:
         raise FileNotFoundError(f"Missing scenes.json or voice.mp3 for {date_str}. Run steps 01-06 first.")
 
     if raw_video_file.exists() and not force:
-        print(f"[07 Video Editor] Raw video already exists at {raw_video_file}. Skipping.")
-        return
+        if voice_file.stat().st_mtime > raw_video_file.stat().st_mtime or scenes_file.stat().st_mtime > raw_video_file.stat().st_mtime:
+            print(f"[07 Video Editor] voice.mp3 or scenes.json was updated after video_raw.mp4 was created. Forcing re-render.")
+        else:
+            print(f"[07 Video Editor] Raw video already exists at {raw_video_file} and is up to date. Skipping.")
+            return
 
     # Check for FFmpeg dependency
     ffmpeg_bin = find_ffmpeg()

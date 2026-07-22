@@ -54,6 +54,8 @@ PIXABAY_API_KEY = os.getenv("PIXABAY_API_KEY", "")
 # Text-To-Speech
 TTS_PROVIDER = os.getenv("TTS_PROVIDER", "edge-tts").lower()
 EDGE_TTS_VOICE = os.getenv("EDGE_TTS_VOICE", "en-US-GuyNeural")
+TTS_RATE = os.getenv("TTS_RATE", "+50%")
+TTS_SPEED = float(os.getenv("TTS_SPEED", "1.50"))
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
 ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
 PIPER_MODEL_PATH = os.getenv("PIPER_MODEL_PATH", "")
