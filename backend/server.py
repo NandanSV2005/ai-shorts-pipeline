@@ -215,6 +215,8 @@ def get_run_detail(date_str: str):
 
     # Fallbacks and basic stats
     has_video = (output_dir / "video.mp4").exists() if output_dir.exists() else False
+    has_part1 = (output_dir / "video_part1.mp4").exists() if output_dir.exists() else False
+    has_part2 = (output_dir / "video_part2.mp4").exists() if output_dir.exists() else False
     has_thumbnail = (output_dir / "thumbnail.png").exists() if output_dir.exists() else False
     
     title = metadata.get("seo", {}).get("title") or topic_data.get("title") or f"Run: {date_str}"
@@ -226,6 +228,8 @@ def get_run_detail(date_str: str):
         "concept": topic_data.get("concept", ""),
         "approval_status": approval_status,
         "video_url": f"/outputs/{date_str}/video.mp4" if has_video else None,
+        "part1_video_url": f"/outputs/{date_str}/video_part1.mp4" if has_part1 else None,
+        "part2_video_url": f"/outputs/{date_str}/video_part2.mp4" if has_part2 else None,
         "thumbnail_url": f"/outputs/{date_str}/thumbnail.png" if has_thumbnail else None,
         "script": script_content,
         "seo": metadata.get("seo", {}),

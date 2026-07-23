@@ -1265,3 +1265,44 @@ body::-webkit-scrollbar-thumb:hover {
     border-radius: 4px;
     font-size: 11px;
 }
+
+/* Video Part Selector Tabs */
+.video-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.video-selector-tabs {
+    display: flex;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 3px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.video-tab-btn {
+    background: transparent;
+    color: var(--text-muted);
+    border: none;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: var(--transition);
+}
+
+.video-tab-btn:hover {
+    color: var(--text-primary);
+}
+
+.video-tab-btn.active {
+    background-color: var(--accent-blue);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}

@@ -135,8 +135,19 @@
                     <!-- Left Column: Video & Preview -->
                     <div class="detail-left">
                         <div class="card video-card">
-                            <div class="card-header">
+                            <div class="card-header video-card-header">
                                 <h3><i class="fa-solid fa-play"></i> Video Output</h3>
+                                <div id="video-selector-tabs" class="video-selector-tabs hidden">
+                                    <button class="video-tab-btn active" id="btn-video-part1">
+                                        <i class="fa-solid fa-scissors"></i> Part 1
+                                    </button>
+                                    <button class="video-tab-btn" id="btn-video-part2">
+                                        <i class="fa-solid fa-scissors"></i> Part 2
+                                    </button>
+                                    <button class="video-tab-btn" id="btn-video-full">
+                                        <i class="fa-solid fa-film"></i> Full Video
+                                    </button>
+                                </div>
                             </div>
                             <div class="video-container">
                                 <video id="video-player" controls preload="metadata">

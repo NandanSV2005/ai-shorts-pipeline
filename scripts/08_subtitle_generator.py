@@ -363,8 +363,8 @@ def split_video_into_parts(output_dir: Path, final_video: Path, script_file: Pat
     ]
     cmd_part2 = [
         ffmpeg_bin, "-y",
-        "-ss", f"{split_time:.3f}",
         "-i", str(final_video),
+        "-ss", f"{split_time:.3f}",
         "-c:v", "libx264",
         "-c:a", "aac",
         str(part2_file)
@@ -399,20 +399,42 @@ def burn_subtitles(ffmpeg_bin: str, raw_video: Path, srt_file: Path, output_vide
     if result.returncode != 0:
         raise RuntimeError(f"FFmpeg burning subtitles failed: {result.stderr}")
 
-def generate_subtitles_and_render(date_str: str, force: bool = False) -> None:
+def generate_subtitles_and_render(date_str: str, force: bool = False, parts: int | None = None) -> None:
     output_dir = get_output_dir(date_str)
     script_file = output_dir / "script.txt"
     voice_file = output_dir / "voice.mp3"
     raw_video = output_dir / "video_raw.mp4"
     srt_file = output_dir / "subtitles.srt"
     final_video = output_dir / "video.mp4"
+    part1_file = output_dir / "video_part1.mp4"
+    part2_file = output_dir / "video_part2.mp4"
 
     if not script_file.exists() or not voice_file.exists() or not raw_video.exists():
         raise FileNotFoundError(f"Missing required input files for step 08 on date {date_str}.")
 
+    # Resolve parts configuration
+    metadata_file = output_dir / "metadata.json"
+    if parts is None and metadata_file.exists():
+        try:
+            with open(metadata_file, "r", encoding="utf-8") as f:
+                parts = json.load(f).get("parts", 1)
+        except Exception:
+            parts = 1
+    parts_count = parts if parts is not None else 1
+
     if final_video.exists() and srt_file.exists() and not force:
-        if raw_video.stat().st_mtime > final_video.stat().st_mtime or voice_file.stat().st_mtime > final_video.stat().st_mtime or script_file.stat().st_mtime > final_video.stat().st_mtime:
+        inputs_updated = (raw_video.stat().st_mtime > final_video.stat().st_mtime or 
+                          voice_file.stat().st_mtime > final_video.stat().st_mtime or 
+                          script_file.stat().st_mtime > final_video.stat().st_mtime)
+        missing_parts = (parts_count == 2 and (not part1_file.exists() or not part2_file.exists()))
+        
+        if inputs_updated:
             print(f"[08 Subtitles] Inputs updated after video.mp4 was created. Forcing subtitle re-burn.")
+        elif missing_parts:
+            print(f"[08 Subtitles] Split parts requested (parts=2) but video_part1.mp4 or video_part2.mp4 missing. Rendering split parts.")
+            ffmpeg_bin = find_ffmpeg()
+            split_video_into_parts(output_dir, final_video, script_file, srt_file, ffmpeg_bin)
+            return
         else:
             print(f"[08 Subtitles] Subtitled video already exists at {final_video} and is up to date. Skipping.")
             return
@@ -465,19 +487,9 @@ def generate_subtitles_and_render(date_str: str, force: bool = False) -> None:
             shutil.copy(raw_video, final_video)
 
     # 3. Split final video into two parts for YouTube Shorts if requested
-    output_dir_path = get_output_dir(date_str)
-    metadata_file = output_dir_path / "metadata.json"
-    parts_count = 1
-    if metadata_file.exists():
-        try:
-            with open(metadata_file, "r", encoding="utf-8") as f:
-                parts_count = json.load(f).get("parts", 1)
-        except Exception:
-            pass
-
     if parts_count == 2:
         try:
-            split_video_into_parts(output_dir_path, final_video, script_file, srt_file, ffmpeg_bin)
+            split_video_into_parts(output_dir, final_video, script_file, srt_file, ffmpeg_bin)
         except Exception as e:
             print(f"[08 Subtitles] [ERROR] Failed to split video: {e}")
     else:
@@ -496,10 +508,16 @@ if __name__ == "__main__":
         action="store_true",
         help="Force transcription and subtitle rendering, overwriting any existing files.",
     )
+    parser.add_argument(
+        "--parts",
+        type=int,
+        default=None,
+        help="Number of video parts (1 or 2).",
+    )
     args = parser.parse_args()
 
     try:
-        generate_subtitles_and_render(args.date, args.force)
+        generate_subtitles_and_render(args.date, args.force, args.parts)
     except Exception as e:
         print(f"[ERROR] Step 08 Subtitle Generator failed: {e}", file=sys.stderr)
         sys.exit(1)

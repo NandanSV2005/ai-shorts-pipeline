@@ -415,15 +415,56 @@ document.addEventListener("DOMContentLoaded", () => {
             detailPartsBadge.className = `parts-badge parts-${pVal}`;
         }
 
-        // Render Video Player
-        if (detail.video_url) {
-            videoPlayer.src = `${detail.video_url}?t=${Date.now()}`;
-            videoPlayer.classList.remove("hidden");
-            videoError.classList.add("hidden");
+        // Render Video Player & Part Selector
+        const videoSelectorTabs = document.getElementById("video-selector-tabs");
+        const btnVideoPart1 = document.getElementById("btn-video-part1");
+        const btnVideoPart2 = document.getElementById("btn-video-part2");
+        const btnVideoFull = document.getElementById("btn-video-full");
+
+        const hasSplitVideos = (detail.parts === 2) && (detail.part1_video_url || detail.part2_video_url);
+
+        function updateActiveVideoTab(activeBtn, videoUrl) {
+            [btnVideoPart1, btnVideoPart2, btnVideoFull].forEach(b => {
+                if (b) b.classList.remove("active");
+            });
+            if (activeBtn) activeBtn.classList.add("active");
+            
+            if (videoUrl) {
+                videoPlayer.src = `${videoUrl}?t=${Date.now()}`;
+                videoPlayer.classList.remove("hidden");
+                videoError.classList.add("hidden");
+            } else {
+                videoPlayer.removeAttribute("src");
+                videoPlayer.classList.add("hidden");
+                videoError.classList.remove("hidden");
+            }
+        }
+
+        if (hasSplitVideos) {
+            if (videoSelectorTabs) videoSelectorTabs.classList.remove("hidden");
+            
+            // Re-attach event listeners for parts switching
+            if (btnVideoPart1) {
+                btnVideoPart1.onclick = () => updateActiveVideoTab(btnVideoPart1, detail.part1_video_url || detail.video_url);
+            }
+            if (btnVideoPart2) {
+                btnVideoPart2.onclick = () => updateActiveVideoTab(btnVideoPart2, detail.part2_video_url || detail.video_url);
+            }
+            if (btnVideoFull) {
+                btnVideoFull.onclick = () => updateActiveVideoTab(btnVideoFull, detail.video_url);
+            }
+
+            // Default to Part 1 if available, otherwise Part 2 or Full Video
+            if (detail.part1_video_url) {
+                updateActiveVideoTab(btnVideoPart1, detail.part1_video_url);
+            } else if (detail.part2_video_url) {
+                updateActiveVideoTab(btnVideoPart2, detail.part2_video_url);
+            } else {
+                updateActiveVideoTab(btnVideoFull, detail.video_url);
+            }
         } else {
-            videoPlayer.removeAttribute("src");
-            videoPlayer.classList.add("hidden");
-            videoError.classList.remove("hidden");
+            if (videoSelectorTabs) videoSelectorTabs.classList.add("hidden");
+            updateActiveVideoTab(btnVideoFull, detail.video_url);
         }
 
         // Render Thumbnail Image
