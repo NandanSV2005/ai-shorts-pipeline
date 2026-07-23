@@ -11,7 +11,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 from backend.config import get_output_dir, MOCK_PIPELINE
 from backend.llm import generate_text, clean_json_response
 
-def generate_seo_metadata(date_str: str, force: bool = False) -> dict:
+def generate_seo_metadata(date_str: str, force: bool = False, parts: int | None = None) -> dict:
     output_dir = get_output_dir(date_str)
     topic_file = output_dir / "topic.json"
     script_file = output_dir / "script.txt"
@@ -127,15 +127,19 @@ def generate_seo_metadata(date_str: str, force: bool = False) -> dict:
             print(f"[ERROR] Failed to parse SEO JSON response. Raw output was:\n{raw_response}")
             raise e
 
-    # Programmatic post-processing for series/episode data
-    if series and isinstance(seo_data, dict):
-        title_suffix = f" | {series} Ep. {episode}" if episode is not None else f" | {series}"
+    # Append series / episode metadata to titles, descriptions & tags if present
+    series = metadata.get("series")
+    episode = metadata.get("episode")
+    
+    if series:
+        ep_str = f" Ep. {episode}" if episode is not None else ""
+        title_suffix = f" | {series}{ep_str}"
         
-        # 1. Update overall title
-        if "title" in seo_data and isinstance(seo_data["title"], str) and title_suffix not in seo_data["title"]:
-            seo_data["title"] = f"{seo_data['title']}{title_suffix}"
+        # Update top-level title
+        main_title = seo_data.get("title", title)
+        if title_suffix not in main_title:
+            seo_data["title"] = f"{main_title}{title_suffix}"
             
-        # 2. Update part titles, descriptions, and tags
         if parts_count == 2:
             for part in ["part1", "part2"]:
                 if part in seo_data:
@@ -152,8 +156,8 @@ def generate_seo_metadata(date_str: str, force: bool = False) -> dict:
                             desc_line = f"This video is part of the '{series}' series."
                             if desc_line.lower() not in p_desc.lower():
                                 if "#" in p_desc:
-                                    parts = p_desc.split("#", 1)
-                                    p_desc = f"{parts[0].rstrip()}\n\n{desc_line}\n\n#{parts[1]}"
+                                    p_parts = p_desc.split("#", 1)
+                                    p_desc = f"{p_parts[0].rstrip()}\n\n{desc_line}\n\n#{p_parts[1]}"
                                 else:
                                     p_desc = f"{p_desc}\n\n{desc_line}"
                                 part_data["description"] = p_desc
@@ -176,8 +180,8 @@ def generate_seo_metadata(date_str: str, force: bool = False) -> dict:
                 desc_line = f"This video is part of the '{series}' series."
                 if desc_line.lower() not in p_desc.lower():
                     if "#" in p_desc:
-                        parts = p_desc.split("#", 1)
-                        p_desc = f"{parts[0].rstrip()}\n\n{desc_line}\n\n#{parts[1]}"
+                        p_parts = p_desc.split("#", 1)
+                        p_desc = f"{p_parts[0].rstrip()}\n\n{desc_line}\n\n#{p_parts[1]}"
                     else:
                         p_desc = f"{p_desc}\n\n{desc_line}"
                     seo_data["description"] = p_desc
@@ -199,7 +203,7 @@ def generate_seo_metadata(date_str: str, force: bool = False) -> dict:
     with open(metadata_file, "w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=2, ensure_ascii=False)
 
-    print(f"[10 SEO] Successfully generated and appended SEO metadata to metadata.json.")
+    print(f"[10 SEO] Successfully generated and saved SEO metadata.")
     return seo_data
 
 if __name__ == "__main__":
@@ -215,10 +219,16 @@ if __name__ == "__main__":
         action="store_true",
         help="Force regeneration of the SEO metadata, overwriting any existing one.",
     )
+    parser.add_argument(
+        "--parts",
+        type=int,
+        default=None,
+        help="Number of video parts (1 or 2).",
+    )
     args = parser.parse_args()
 
     try:
-        seo = generate_seo_metadata(args.date, args.force)
+        seo = generate_seo_metadata(args.date, args.force, args.parts)
         print(json.dumps(seo, indent=2))
     except Exception as e:
         print(f"[ERROR] Step 10 SEO Generator failed: {e}", file=sys.stderr)

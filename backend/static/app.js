@@ -446,14 +446,22 @@ document.addEventListener("DOMContentLoaded", () => {
             // Re-attach event listeners for parts switching
             if (btnVideoPart1) {
                 btnVideoPart1.onclick = () => {
-                    const targetUrl = detail.part1_video_url || detail.video_url;
-                    updateActiveVideoTab(btnVideoPart1, targetUrl);
+                    if (detail.part1_video_url) {
+                        updateActiveVideoTab(btnVideoPart1, detail.part1_video_url);
+                    } else {
+                        updateActiveVideoTab(btnVideoPart1, detail.video_url);
+                        alert("Part 1 video file (video_part1.mp4) has not been generated for this run yet.\n\nTo generate Part 1 and Part 2 videos, check 'Force overwrite cache' and click 'Start Generation'.");
+                    }
                 };
             }
             if (btnVideoPart2) {
                 btnVideoPart2.onclick = () => {
-                    const targetUrl = detail.part2_video_url || detail.video_url;
-                    updateActiveVideoTab(btnVideoPart2, targetUrl);
+                    if (detail.part2_video_url) {
+                        updateActiveVideoTab(btnVideoPart2, detail.part2_video_url);
+                    } else {
+                        updateActiveVideoTab(btnVideoPart2, detail.video_url);
+                        alert("Part 2 video file (video_part2.mp4) has not been generated for this run yet.\n\nTo generate Part 1 and Part 2 videos, check 'Force overwrite cache' and click 'Start Generation'.");
+                    }
                 };
             }
             if (btnVideoFull) {

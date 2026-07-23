@@ -25,7 +25,7 @@ from backend.config import (
 )
 from backend.database import update_run_status
 
-def run_step(script_name: str, date_str: str, force: bool = False, topic: str | None = None) -> None:
+def run_step(script_name: str, date_str: str, force: bool = False, topic: str | None = None, parts: int = 1) -> None:
     """Executes a numbered step script as a subprocess to preserve isolation."""
     script_path = BASE_DIR / "scripts" / script_name
     print(f"\n======================================================================")
@@ -37,6 +37,8 @@ def run_step(script_name: str, date_str: str, force: bool = False, topic: str | 
         cmd.append("--force")
     if script_name == "01_topic_generator.py" and topic:
         cmd.extend(["--topic", topic])
+    if script_name in ["03_script_writer.py", "08_subtitle_generator.py", "10_seo_generator.py"] and parts:
+        cmd.extend(["--parts", str(parts)])
         
     result = subprocess.run(cmd)
     if result.returncode != 0:
@@ -200,7 +202,7 @@ def execute_pipeline(date_str: str, force: bool = False, topic: str | None = Non
     try:
         # Run all steps sequentially
         for step in steps:
-            run_step(step, date_str, force, topic)
+            run_step(step, date_str, force, topic, parts)
             
         # Get final topic title from topic.json
         topic_file = output_dir / "topic.json"

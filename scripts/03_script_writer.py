@@ -25,7 +25,7 @@ def count_narration_words(script_text: str) -> int:
     full_narration = " ".join(narration_lines)
     return len(full_narration.split())
 
-def run_script_writer(date_str: str, force: bool = False) -> str:
+def run_script_writer(date_str: str, force: bool = False, parts: int | None = None) -> str:
     output_dir = get_output_dir(date_str)
     topic_file = output_dir / "topic.json"
     research_file = output_dir / "research.md"
@@ -33,8 +33,17 @@ def run_script_writer(date_str: str, force: bool = False) -> str:
 
     if not topic_file.exists() or not research_file.exists():
         raise FileNotFoundError(
-            f"Topic/Research files not found for {date_str}. Please run steps 01 and 02 first."
+            f"Missing required input files for date {date_str}. Run steps 01 and 02 first."
         )
+
+    metadata_file = output_dir / "metadata.json"
+    if parts is None and metadata_file.exists():
+        try:
+            with open(metadata_file, "r", encoding="utf-8") as f:
+                parts = json.load(f).get("parts", 1)
+        except Exception:
+            parts = 1
+    parts_count = parts if parts is not None else 1
 
     if script_file.exists() and not force:
         with open(script_file, "r", encoding="utf-8") as f:
@@ -50,15 +59,6 @@ def run_script_writer(date_str: str, force: bool = False) -> str:
         topic_data = json.load(f)
     with open(research_file, "r", encoding="utf-8") as f:
         research_content = f.read()
-
-    metadata_file = output_dir / "metadata.json"
-    parts_count = 1
-    if metadata_file.exists():
-        try:
-            with open(metadata_file, "r", encoding="utf-8") as f:
-                parts_count = json.load(f).get("parts", 1)
-        except Exception:
-            pass
 
     title = topic_data.get("title")
     visual_style = topic_data.get("visual_style", "vintage")
@@ -165,10 +165,16 @@ if __name__ == "__main__":
         action="store_true",
         help="Force regeneration of the script, overwriting any existing one.",
     )
+    parser.add_argument(
+        "--parts",
+        type=int,
+        default=None,
+        help="Number of video parts (1 or 2).",
+    )
     args = parser.parse_args()
 
     try:
-        content = run_script_writer(args.date, args.force)
+        content = run_script_writer(args.date, args.force, args.parts)
         print(content[:500] + "\n... [truncated] ...")
     except Exception as e:
         print(f"[ERROR] Step 03 Script Writer failed: {e}", file=sys.stderr)
