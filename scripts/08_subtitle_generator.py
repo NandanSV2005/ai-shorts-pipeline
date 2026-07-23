@@ -357,16 +357,15 @@ def split_video_into_parts(output_dir: Path, final_video: Path, script_file: Pat
         ffmpeg_bin, "-y",
         "-i", str(final_video),
         "-t", f"{split_time:.3f}",
-        "-c:v", "libx264",
-        "-c:a", "aac",
+        "-c", "copy",
         str(part1_file)
     ]
     cmd_part2 = [
         ffmpeg_bin, "-y",
-        "-i", str(final_video),
         "-ss", f"{split_time:.3f}",
-        "-c:v", "libx264",
-        "-c:a", "aac",
+        "-i", str(final_video),
+        "-c", "copy",
+        "-avoid_negative_ts", "make_zero",
         str(part2_file)
     ]
     

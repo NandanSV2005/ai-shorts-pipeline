@@ -37,9 +37,13 @@ def run_script_writer(date_str: str, force: bool = False) -> str:
         )
 
     if script_file.exists() and not force:
-        print(f"[03 Script Writer] Script already exists for {date_str}. Skipping.")
         with open(script_file, "r", encoding="utf-8") as f:
-            return f.read()
+            existing_content = f.read()
+        if parts_count == 2 and "[SPLIT POINT]" not in existing_content:
+            print(f"[03 Script Writer] Detected parts=2 configuration but existing script lacks [SPLIT POINT]. Forcing script regeneration.")
+        else:
+            print(f"[03 Script Writer] Script already exists for {date_str}. Skipping.")
+            return existing_content
 
     # Load inputs
     with open(topic_file, "r", encoding="utf-8") as f:

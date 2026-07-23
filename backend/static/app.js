@@ -421,7 +421,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const btnVideoPart2 = document.getElementById("btn-video-part2");
         const btnVideoFull = document.getElementById("btn-video-full");
 
-        const hasSplitVideos = (detail.parts === 2) && (detail.part1_video_url || detail.part2_video_url);
+        const isSplitRun = (detail.parts === 2);
 
         function updateActiveVideoTab(activeBtn, videoUrl) {
             [btnVideoPart1, btnVideoPart2, btnVideoFull].forEach(b => {
@@ -440,15 +440,21 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
-        if (hasSplitVideos) {
+        if (isSplitRun) {
             if (videoSelectorTabs) videoSelectorTabs.classList.remove("hidden");
             
             // Re-attach event listeners for parts switching
             if (btnVideoPart1) {
-                btnVideoPart1.onclick = () => updateActiveVideoTab(btnVideoPart1, detail.part1_video_url || detail.video_url);
+                btnVideoPart1.onclick = () => {
+                    const targetUrl = detail.part1_video_url || detail.video_url;
+                    updateActiveVideoTab(btnVideoPart1, targetUrl);
+                };
             }
             if (btnVideoPart2) {
-                btnVideoPart2.onclick = () => updateActiveVideoTab(btnVideoPart2, detail.part2_video_url || detail.video_url);
+                btnVideoPart2.onclick = () => {
+                    const targetUrl = detail.part2_video_url || detail.video_url;
+                    updateActiveVideoTab(btnVideoPart2, targetUrl);
+                };
             }
             if (btnVideoFull) {
                 btnVideoFull.onclick = () => updateActiveVideoTab(btnVideoFull, detail.video_url);
@@ -460,7 +466,7 @@ document.addEventListener("DOMContentLoaded", () => {
             } else if (detail.part2_video_url) {
                 updateActiveVideoTab(btnVideoPart2, detail.part2_video_url);
             } else {
-                updateActiveVideoTab(btnVideoFull, detail.video_url);
+                updateActiveVideoTab(btnVideoPart1, detail.video_url);
             }
         } else {
             if (videoSelectorTabs) videoSelectorTabs.classList.add("hidden");
