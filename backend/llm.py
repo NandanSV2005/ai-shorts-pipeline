@@ -272,29 +272,38 @@ So, what do you think? Was I the jerk? Tell me in the comments and subscribe for
             system_instruction=system_instruction
         )
         
-        max_retries = 3
+        max_retries = 5
         backoff_sec = 2.0
         response = None
-        for attempt in range(max_retries + 1):
-            try:
-                response = client.models.generate_content(
-                    model="gemini-3.5-flash",
-                    contents=prompt,
-                    config=config
-                )
-                break
-            except Exception as e:
-                err_str = str(e).lower()
-                if ("429" in err_str or "resource_exhausted" in err_str or "quota" in err_str) and attempt < max_retries:
-                    print(f"[LLM Interface] Gemini rate limit hit (429/quota). Retrying in {backoff_sec} seconds (Attempt {attempt+1}/{max_retries})...")
-                    time.sleep(backoff_sec)
-                    backoff_sec *= 2
-                else:
-                    raise e
+        models_to_try = ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.0-flash"]
         
-        if not response or not response.text:
-            raise RuntimeError("Gemini returned an empty response.")
-        return response.text
+        last_exception = None
+        for target_model in models_to_try:
+            for attempt in range(max_retries + 1):
+                try:
+                    response = client.models.generate_content(
+                        model=target_model,
+                        contents=prompt,
+                        config=config
+                    )
+                    if response and response.text:
+                        return response.text
+                except Exception as e:
+                    last_exception = e
+                    err_str = str(e).lower()
+                    transient_keywords = ["429", "503", "500", "502", "504", "resource_exhausted", "quota", "unavailable", "high demand", "overloaded", "temporarily"]
+                    is_transient = any(k in err_str for k in transient_keywords)
+                    if is_transient and attempt < max_retries:
+                        print(f"[LLM Interface] Gemini transient error on '{target_model}' ({e}). Retrying in {backoff_sec:.1f}s (Attempt {attempt+1}/{max_retries})...")
+                        time.sleep(backoff_sec)
+                        backoff_sec *= 1.5
+                    else:
+                        print(f"[LLM Interface] Gemini call failed for '{target_model}': {e}")
+                        break
+        
+        if last_exception:
+            raise last_exception
+        raise RuntimeError("Gemini returned an empty response.")
 
     elif LLM_PROVIDER == "openai":
         if not OPENAI_API_KEY:

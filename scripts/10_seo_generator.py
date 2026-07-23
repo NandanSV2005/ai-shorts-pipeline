@@ -136,7 +136,7 @@ def generate_seo_metadata(date_str: str, force: bool = False, parts: int | None 
         title_suffix = f" | {series}{ep_str}"
         
         # Update top-level title
-        main_title = seo_data.get("title", title)
+        main_title = seo_data.get("title", title_concept)
         if title_suffix not in main_title:
             seo_data["title"] = f"{main_title}{title_suffix}"
             

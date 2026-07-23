@@ -89,14 +89,19 @@ def run_fact_checker(date_str: str, force: bool = False) -> list:
         ]
     else:
         print(f"[04 Fact Checker] Extracting and checking claims against research...")
-        raw_response = generate_text(prompt, system_instruction=system_instruction)
-        clean_response = clean_json_response(raw_response)
-
         try:
+            raw_response = generate_text(prompt, system_instruction=system_instruction)
+            clean_response = clean_json_response(raw_response)
             fact_check_results = json.loads(clean_response)
-        except json.JSONDecodeError as e:
-            print(f"[ERROR] Failed to parse Fact Checker JSON response. Raw output was:\n{raw_response}")
-            raise e
+        except Exception as e:
+            print(f"[04 Fact Checker] [WARNING] Consistency check failed due to LLM error ({e}). Using default unverified check.")
+            fact_check_results = [
+                {
+                    "claim": "Story narrative consistency check",
+                    "status": "UNVERIFIED",
+                    "explanation": f"LLM API was temporarily unavailable during consistency check ({e})."
+                }
+            ]
 
     # Update metadata and save
     metadata["fact_check"] = fact_check_results
