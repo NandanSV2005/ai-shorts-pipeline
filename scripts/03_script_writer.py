@@ -70,12 +70,16 @@ def run_script_writer(date_str: str, force: bool = False, parts: int | None = No
         "on separate lines (e.g. [SCENE: Gameplay showing fast parkour movements]), and maintain dramatic tension."
     )
 
-    split_instruction = ""
     if parts_count == 2:
+        word_cap = 850
+        min_words = 700
+        length_instruction = f"The spoken narration MUST be between {min_words} and {word_cap} words total (around 4.5 minutes total) so that when split into Part 1 and Part 2, EACH part is AT LEAST 2 minutes long."
         split_instruction = (
             "7. Cliffhanger & Split Point: Place a single `[SPLIT POINT]` directive on its own line exactly where the story should split into Part 1 and Part 2. This must be a genuine, dramatic cliffhanger right before the twist or final resolution."
         )
     else:
+        word_cap = 550
+        length_instruction = "The spoken narration MUST be under 550 words total to keep the video under 4 minutes."
         split_instruction = (
             "7. Do NOT include any [SPLIT POINT] directive. The script should be a single continuous narrative without any splitting markers."
         )
@@ -84,21 +88,20 @@ def run_script_writer(date_str: str, force: bool = False, parts: int | None = No
         f"Story Premise: {title}\n"
         f"Visual Style: {visual_style}\n\n"
         f"Story Outline/Plan:\n{research_content}\n\n"
-        "Draft a complete first-person YouTube script under 4 minutes. Follow these guidelines exactly:\n"
+        "Draft a complete first-person YouTube script. Follow these guidelines exactly:\n"
         "1. Style: Write in the first-person, confessional Reddit-post narration style (e.g. 'My fiancé and I were supposed to get married in three weeks, until I found out...', 'So this happened last month and I\'m still not over it...'). The tone must sound like someone reading their own real Reddit post aloud.\n"
         "2. Hook: Start with a natural opening hook in the first 3-5 seconds (e.g. starting mid-action or with the most shocking line before giving context).\n"
         "3. Structure: Write the script with explicit section markers: [HOOK], [BODY], and [CTA/OUTRO].\n"
         "4. Visuals: Place visual scene descriptions inside brackets on their own line (e.g. `[SCENE: Description of gameplay visuals matching the intensity of the scene]`). Every paragraph of narration MUST be preceded by a matching [SCENE: ...] directive.\n"
-        "5. Word Count: The spoken narration MUST be under 550 words total to keep the video under 4 minutes.\n"
+        f"5. Word Count: {length_instruction}\n"
         "6. Complete Story: The script must be a complete, self-contained story with a clear hook, escalating conflict, and satisfying resolution.\n"
         f"{split_instruction}"
     )
 
-    print(f"[03 Script Writer] Writing script for: '{title}' (parts={parts_count})...")
+    print(f"[03 Script Writer] Writing script for: '{title}' (parts={parts_count}, cap={word_cap} words)...")
     script_content = generate_text(prompt, system_instruction=system_instruction)
 
     # Word count validation & automated LLM revision loop
-    word_cap = 550
     words = count_narration_words(script_content)
     attempts = 0
     max_attempts = 2
@@ -114,8 +117,8 @@ def run_script_writer(date_str: str, force: bool = False, parts: int | None = No
             split_point_instruction = "Do NOT include any [SPLIT POINT] marker. "
 
         revision_prompt = (
-            f"The following script is too long ({words} words). The limit is {word_cap} words of spoken narration "
-            f"to keep the video under 4 minutes. Please edit the script to make the narration more concise, "
+            f"The following script is too long ({words} words). The target is around {word_cap} words of spoken narration "
+            f"Please edit the script to make the narration concise, "
             f"while preserving all bracketed visual scene directives, the hook, the CTA/outro, {split_point_instruction}"
             f"It must remain a complete story with a beginning, middle, and satisfying end.\n\n"
             f"Script to revise:\n{script_content}"
